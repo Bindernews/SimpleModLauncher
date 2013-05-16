@@ -1,0 +1,17 @@
+{
+    "name": "Example",
+    "folder": "example_modpack_example",
+    "author": "Bindernews",
+    "version": "1.0",
+    "mcversion": "1.5.2",
+	"mods": {
+		"Forge Mod Loader": {
+			"url": "http://files.minecraftforge.net/minecraftforge/minecraftforge-universal-1.5.2-7.8.0.684.zip",
+            "type": "jarmod"
+		},
+		"Optifine": {
+			"url": "http://optifine.net/downloadx.php?f=OptiFine_1.5.2_HD_D2.zip&x=eb6d3e05ed346a21e1bf8e45d0a62a19",
+            "type": "jar"
+		}
+	}
+}
