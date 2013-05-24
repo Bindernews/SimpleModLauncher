@@ -3,45 +3,109 @@ package com.github.modlauncher.net;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.Thread.State;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.concurrent.Callable;
 
-import com.github.modlauncher.Utils;
+import com.github.modlauncher.util.Utils;
 
-
-public class FileDownloader implements Runnable {
+public class FileDownloader implements Callable<FileDownloader> {
 	
-	public static final long BYTES_KB = 1024;
+	private static final long TRANSFER_BYTES = 1024 * 5;
 	
 	private final URLConnection urlcon;
-	private final long updateBytes = BYTES_KB * 2;
-	private final Thread downloadThread = new Thread(this);
-
-	private volatile Exception mError = null;
-	private volatile float percentDone = 0.0f;
 	private volatile String md5Sum = null;
+	private volatile float progress = 0.0f;
 	
-	private List<ProgressListener> progressWatchers;
 	private File file = null;
 	private File directory = null;
 	private String fileName;
-	private boolean canLaunch = true;
 	
-	public FileDownloader(URLConnection turl, File dir, String fname, Collection<ProgressListener> plist) {
+	public FileDownloader(URLConnection turl, File dir, String fname) {
 		urlcon = turl;
 		fileName = fname;
 		directory = dir;
-		progressWatchers = new ArrayList<ProgressListener>(plist);
+	}
+	
+	@Override
+	public FileDownloader call() throws Exception {	
+		ReadableByteChannel rbc = null;
+		FileOutputStream fos = null;
+		DigestInputStream digis = null;
+		
+		setupHttpConnection(urlcon);
+		urlcon.connect();
+		URLConnection ncon = followRedirect(urlcon);
+		if (ncon != urlcon) {
+			setupHttpConnection(ncon);
+			ncon.connect();
+		}
+		
+		if (fileName == null) {
+			fileName = getURL().getPath(); // set it as a fallback
+			if (ncon instanceof HttpURLConnection) {
+				HttpURLConnection htcon = (HttpURLConnection)ncon;
+				String dispos = htcon.getHeaderField("content-disposition");
+				if (dispos != null) {
+					final String searchStr = "filename=\"";
+					int i1 = dispos.indexOf(searchStr);
+					int i2 = dispos.indexOf('\"', i1 + searchStr.length());
+					if (i1 != -1 && i2 != -1) {
+						fileName = dispos.substring(i1 + searchStr.length(), i2);
+					}
+				}
+				else {
+					fileName = URLDecoder.decode(new File(fileName).getName(), "UTF-8");
+				}
+			}
+			
+		}
+		file = new File(directory, fileName);
+		
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		digis = new DigestInputStream(ncon.getInputStream(), md);
+		rbc = Channels.newChannel(digis);
+		fos = new FileOutputStream(file);
+		
+		long bytesRead = 0;
+		long writePos = 0;
+		long dataLength = ncon.getContentLengthLong();
+		do {
+			bytesRead = fos.getChannel().transferFrom(rbc, writePos, TRANSFER_BYTES);
+			writePos += bytesRead;
+			progress = (float)writePos / dataLength;
+		}
+		while (bytesRead == TRANSFER_BYTES);
+		fos.close();
+		rbc.close();
+		md5Sum = Utils.bytesToHex(md.digest());
+		return this;
+	}
+	
+	protected URLConnection followRedirect(URLConnection urlcon) throws IOException {
+		if (urlcon instanceof HttpURLConnection) {
+			HttpURLConnection htcon = (HttpURLConnection)urlcon;
+			if (htcon.getResponseCode() == 307) {
+				return new URL(htcon.getHeaderField("Location")).openConnection();
+			}
+		}
+		return urlcon;
+	}
+	
+	protected void setupHttpConnection(URLConnection urlcon) {
+		if (urlcon instanceof HttpURLConnection) {
+			HttpURLConnection htcon = (HttpURLConnection)urlcon;
+			htcon.setInstanceFollowRedirects(true);
+			htcon.addRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31");
+		}
+		urlcon.setDoInput(true);
+		urlcon.setAllowUserInteraction(true);
 	}
 	
 	public URL getURL() {
@@ -56,107 +120,15 @@ public class FileDownloader implements Runnable {
 		return directory;
 	}
 	
-	public float getPercentDone() {
-		return percentDone;
-	}
-	
-	public Exception getError() {
-		return mError;
-	}
-	
 	public String getMD5() {
 		return md5Sum;
 	}
 	
-	public void beginDownload() {
-		downloadThread.start();
+	public synchronized float getProgress() {
+		return progress;
 	}
 	
-	public boolean waitForComplete() {
-		if (downloadThread.getState() == State.NEW)
-			return false;
-		if (downloadThread.getState() == State.TERMINATED)
-			return true;
-		try {
-			downloadThread.join();
-		} catch (InterruptedException e) {
-		}
-		return (downloadThread.getState() == State.TERMINATED);
-	}
-	
-	public void cancel() {
-		canLaunch = false;
-		downloadThread.interrupt();
-	}
-
-	@Override
-	public void run() {
-		// ensure it hasn't been canceled before it began
-		if (!canLaunch) return;
-		canLaunch = false;
-		
-		ReadableByteChannel rbc = null;
-		FileOutputStream fos = null;
-		DigestInputStream digis = null;
-		try {
-			for(ProgressListener pl : progressWatchers) {
-				pl.onBegin(this);
-			}
-			if (urlcon instanceof HttpURLConnection) {
-				HttpURLConnection htcon = (HttpURLConnection)urlcon;
-				htcon.setInstanceFollowRedirects(true);
-			}
-			urlcon.setDoInput(true);
-			urlcon.setAllowUserInteraction(true);
-			urlcon.connect();
-			
-			if (fileName == null) {
-				fileName = getURL().getPath(); // set it as a fallback
-				if (urlcon instanceof HttpURLConnection) {
-					HttpURLConnection htcon = (HttpURLConnection)urlcon;
-					String dispos = htcon.getHeaderField("content-disposition");
-					if (dispos != null) {
-						int i1 = dispos.indexOf("filename=\"");
-						int i2 = dispos.indexOf('\"', i1 + 10);
-						if (i1 != -1 && i2 != -1) {
-							fileName = dispos.substring(i1, i2);
-						}
-					}
-				}
-			}
-			file = new File(directory, fileName);
-			
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			digis = new DigestInputStream(urlcon.getInputStream(), md);
-			rbc = Channels.newChannel(digis);
-			fos = new FileOutputStream(file);
-			
-			long bytesRead = 0;
-			long writePos = 0;
-			long dataLength = urlcon.getContentLengthLong();
-			do {
-				bytesRead = fos.getChannel().transferFrom(rbc, writePos, updateBytes);
-				writePos += bytesRead;
-				percentDone = (float)writePos / dataLength;
-				for(ProgressListener pl : progressWatchers) {
-					pl.onUpdate(this);
-				}
-			}
-			while (bytesRead == updateBytes);
-			fos.close();
-			rbc.close();
-			md5Sum = Utils.bytesToString(md.digest());
-		}
-		catch (IOException ioe) {
-			mError = ioe;
-			for(ProgressListener pl : progressWatchers) {
-				pl.onError(this);
-			}
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		}
-		for(ProgressListener pl : progressWatchers) {
-			pl.onComplete(this);
-		}
+	protected synchronized void setProgress(float prog) {
+		progress = prog;
 	}
 }

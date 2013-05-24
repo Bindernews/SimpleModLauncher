@@ -1,5 +1,6 @@
 package com.github.modlauncher.workers;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
@@ -22,8 +23,7 @@ public class LoginWorker extends SwingWorker<String, Void> {
 		URL url = new URL("https://login.minecraft.net/?user=" 
 				+ URLEncoder.encode(username, "UTF-8") + "&password=" 
 				+ URLEncoder.encode(password, "UTF-8") + "&version=13");
-		return NetUtils.downloadString(url);
+		HttpURLConnection urlcon = (HttpURLConnection)url.openConnection();
+		return NetUtils.downloadString(urlcon);
 	}
-
-	
 }

@@ -1,6 +1,7 @@
 package com.github.modlauncher.pack;
 
 import com.github.modlauncher.exceptions.InvalidModpackException;
+import com.github.modlauncher.util.JsonUtils;
 import com.google.gson.JsonObject;
 
 public class ModFile {
@@ -14,6 +15,7 @@ public class ModFile {
 	public String name = null;
 	public String url = null;
 	public String md5 = null;
+	public boolean isArchive = false;
 	public Download download = Download.Direct;
 	
 	/** The filename to save to */
@@ -22,38 +24,28 @@ public class ModFile {
 	public ModFile() {
 	}
 	
+	public ModFile(String mname, ModType mtype, String murl) {
+		this(mname, mtype, murl, false);
+	}
+	
+	public ModFile(String mname, ModType mtype, String murl, boolean archive) {
+		name = mname;
+		type = mtype;
+		url = murl;
+		isArchive = archive;
+	}
+	
 	public void loadJson(JsonObject obj, String oname) throws InvalidModpackException {
 		name = oname;
-		url = validateString(obj,"url",true);
-		md5 = validateString(obj,"md5",false);
-		type = new TL<ModType>().safeGetEnum(obj, "type");
+		url = JsonUtils.validateString(obj,"url",true);
+		md5 = JsonUtils.validateString(obj,"md5",false);
+		type = new JsonUtils.TL<ModType>(ModType.class).safeGetEnum(obj, "type");
 		if (obj.has("download"))
-			download = new TL<Download>().safeGetEnum(obj, "download");
-		filename = validateString(obj,"filename",false);
+			download = new JsonUtils.TL<Download>().safeGetEnum(obj, "download");
+		filename = JsonUtils.validateString(obj,"filename",false);
 	}
 	
-	protected class TL<T extends Enum<T>> {
-		Class<T> ctype;
-		public T safeGetEnum(JsonObject obj, String ename) throws InvalidModpackException {
-			String mtype = validateString(obj,ename,true);
-			for(T mt : ctype.getEnumConstants()) {
-				if (mt.name().equalsIgnoreCase(mtype)) {
-					return mt;
-				}
-			}
-			throw new InvalidModpackException("Mod \"" + name + "\" has an invalid mod type");
-		}
-	}
 	
-	private String validateString(JsonObject obj, String ename, boolean required) throws InvalidModpackException {
-		if (!obj.has(ename)) {
-			if (required)
-				throw new InvalidModpackException("Mod " + name + ": \"" + ename + "\" not defined");
-			else
-				return null;
-		}
-		if (!obj.get(ename).isJsonPrimitive())
-			throw new InvalidModpackException("Mod " + name + "\"" + ename + "\" is not a string");
-		return obj.get(ename).getAsString();
-	}
+	
+	
 }

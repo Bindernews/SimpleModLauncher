@@ -11,11 +11,9 @@ import javax.swing.JButton;
 public class MainFrame extends JFrame {
 
 	private JPanel contentPane;
-	
-	private static MainFrame instance;
+	private LoginPanel loginPanel;
 
 	public MainFrame() {
-		instance = this;
 		setTitle("Vortexel Launcher");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setFont(Res.mcfont);
@@ -25,8 +23,8 @@ public class MainFrame extends JFrame {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 		
-		LoginPanel panel = new LoginPanel();
-		contentPane.add(panel, BorderLayout.CENTER);
+		loginPanel = new LoginPanel();
+		contentPane.add(loginPanel, BorderLayout.CENTER);
 		
 		JButton btnOptions = new JButton("Options");
 		contentPane.add(btnOptions, BorderLayout.NORTH);
@@ -34,8 +32,16 @@ public class MainFrame extends JFrame {
 		pack();
 	}
 	
-	public static MainFrame i() {
-		return instance;
+	public void setLoginStatus(String status) {
+		loginPanel.getStatusBar().setText(status);
 	}
 
+	public LoginPanel getLoginPanel() {
+		return loginPanel;
+	}
+	
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		loginPanel.setEnabled(enabled);
+	}
 }

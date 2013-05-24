@@ -5,6 +5,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 import javax.swing.JPasswordField;
+import javax.swing.text.BadLocationException;
 
 public class HelpTextField extends JPasswordField implements FocusListener{
 	private static final long serialVersionUID = 1L;
@@ -32,6 +33,10 @@ public class HelpTextField extends JPasswordField implements FocusListener{
 	private void init(String help) {
 		helpText = help;
 		addFocusListener(this);
+		try {
+			getDocument().insertString(0, "", null);
+		} catch (BadLocationException e) {
+		}
 		onFocusLost();
 	}
 	
@@ -40,7 +45,11 @@ public class HelpTextField extends JPasswordField implements FocusListener{
 	}
 	
 	public void setHelpText(String help) {
+		onFocusGained();
 		helpText = help;
+		if (!hasFocus()) {
+			onFocusLost();
+		}
 	}
 	
 	@Override

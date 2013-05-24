@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import com.github.modlauncher.OS;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,9 +15,11 @@ public class PackCache {
 	private Gson gson = new Gson();
 	private JsonObject root;
 	private File cacheFile;
+	private Modpack modpack;
 	
-	public PackCache(File f) throws IOException {
-		cacheFile = f;
+	public PackCache(Modpack pack) throws IOException {
+		modpack = pack;
+		cacheFile = new File(OS.dataDir(), pack.folder + File.separator + "cache.txt");
 		if (cacheFile.exists()) {
 			FileReader fr = new FileReader(cacheFile);
 			JsonParser parser = new JsonParser();
@@ -25,6 +28,12 @@ public class PackCache {
 		}
 		else {
 			root = new JsonObject();
+		}
+		for(ModFile mf : pack.getMods()) {
+			if (isModDefined(mf)) {
+				mf.filename = getFilename(mf);
+				mf.md5 = getMD5(mf);
+			}
 		}
 	}
 	
@@ -51,6 +60,10 @@ public class PackCache {
 		return getModProperty(modfile.name, "md5");
 	}
 	
+	public Modpack getModpack() {
+		return modpack;
+	}
+	
 	public boolean updateMod(ModFile modfile) {
 		putIfValid(modfile.name, "filename", modfile.filename);
 		putIfValid(modfile.name, "md5", modfile.md5);
@@ -71,6 +84,9 @@ public class PackCache {
 	
 	protected boolean putIfValid(String mod, String k, String v) {
 		if (v != null) {
+			if (!root.has(mod)) {
+				root.add(mod, new JsonObject());
+			}
 			root.get(mod).getAsJsonObject().addProperty(k, v);
 			return true;
 		}
