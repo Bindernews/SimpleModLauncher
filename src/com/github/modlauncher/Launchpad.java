@@ -224,8 +224,10 @@ public class Launchpad {
 		// create the launchpad and start the program
 		try {
 			instance = new Launchpad();
-			JsonElement elem = Utils.readJsonFile(Res.getURL("res/vortexel_pack.json"));
-			Modpack pack = new Modpack(elem.getAsJsonObject(), "vortexel_pack.json");
+			//JsonElement elem = Utils.readJsonFile(Res.getURL("res/vortexel_pack.json"));
+			//Modpack pack = new Modpack(elem.getAsJsonObject(), "vortexel_pack.json");
+			JsonElement elem = Utils.readJsonFile(Res.getURL("res/modpack.json"));
+			Modpack pack = new Modpack(elem.getAsJsonObject(), "modpack.json");
 			instance.settings.setModpack(pack);
 		} catch (IOException e) {
 			ErrorUtils.showException(e, true);

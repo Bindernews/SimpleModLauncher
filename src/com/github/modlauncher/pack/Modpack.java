@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import com.github.modlauncher.MCVersion;
 import com.github.modlauncher.OS;
+import com.github.modlauncher.VersionData;
 import com.github.modlauncher.exceptions.InvalidModpackException;
 import com.github.modlauncher.util.JsonUtils;
 import com.google.gson.JsonElement;
@@ -18,7 +19,7 @@ public class Modpack {
 
 	public String name;
 	public MCVersion mcversion;
-	public String version;
+	public VersionData version;
 	public String folder;
 	private List<String> authors = new ArrayList<String>();
 	private List<ModFile> modList = new ArrayList<ModFile>();
@@ -36,7 +37,7 @@ public class Modpack {
 		obj = jobj;
 		try {
 			name = JsonUtils.validateString(obj,"name",true);
-			version = JsonUtils.validateString(obj,"version",true);
+			version = VersionData.create(JsonUtils.validateString(obj,"version",true));
 			mcversion = MCVersion.fromString(JsonUtils.validateString(obj,"mcversion",true));
 			if (mcversion == null)
 				throw new InvalidModpackException("Invalid minecraft version");

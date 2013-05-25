@@ -14,6 +14,10 @@ public enum ModType {
 	Bin("bin") {
 	},
 	Native("bin/natives") {
+	},
+	Resource("resources/mod"){
+	},
+	Custom("") {
 	};
 	
 	private ModType(String dirName) {

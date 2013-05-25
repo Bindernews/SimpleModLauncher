@@ -67,6 +67,7 @@ public class FileDownloader implements Callable<FileDownloader> {
 			
 		}
 		file = new File(directory, fileName);
+		file.getParentFile().mkdirs();
 		
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		digis = new DigestInputStream(ncon.getInputStream(), md);

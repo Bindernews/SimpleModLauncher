@@ -33,7 +33,7 @@ public class MinecraftLauncher {
 		for(int i=0; i<pack.getMods().size(); i++) {
 			ModFile mf = pack.getMods().get(i); 
 			if (mf.type == ModType.Jar) {
-				cpModList.add(new File(mf.type.getDir(basepath), mf.filename).getAbsolutePath());
+				cpModList.add(new File(mf.type.getDir(basepath), mf.getFilename()).getAbsolutePath());
 			}
 		}
 		for(File f : workingDir.listFiles()) {

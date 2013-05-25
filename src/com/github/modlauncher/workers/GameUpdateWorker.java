@@ -17,6 +17,7 @@ import javax.swing.SwingWorker;
 import com.github.modlauncher.Launchpad;
 import com.github.modlauncher.MinecraftLauncher;
 import com.github.modlauncher.OS;
+import com.github.modlauncher.VersionData;
 import com.github.modlauncher.exceptions.InvalidModpackException;
 import com.github.modlauncher.gui.ArrayListModel;
 import com.github.modlauncher.gui.DownloadManagerGui;
@@ -59,7 +60,7 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 	protected Boolean doInBackground() throws Exception {
 		return setupPack();
 	}
-
+	
 	public boolean setupPack() throws IOException, InvalidModpackException {
 		dmanagerGui = new DownloadManagerGui(Launchpad.i().getFrame());
 		dmanagerGui.getList().setModel(alm);
@@ -73,24 +74,27 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 			addMCFiles(fileList);
 			Proxy prox = Launchpad.getSettings().getProxy(); 
 			for(ModFile mod : fileList) {
+				File mfile;
 				try {
+					boolean skip = false;
 					if (packData.isModDefined(mod)) {
-						File mfile = new File(mod.type.getDir(packDir), packData.getFilename(mod));
-						if (Utils.getMD5(mfile).equals(packData.getMD5(mod))) {
-							continue;
+						mfile = new File(mod.type.getDir(packDir), packData.getFilename(mod));
+						if (packData.getURL(mod).equals(mod.url)
+								&& Utils.getMD5(mfile).equals(packData.getMD5(mod))) {
+							skip = true;
 						}
 						// else will re-download
 					}
+					if (skip)
+						continue;
 				}
 				catch (IOException e) {}
 				// if any problems occur it will ignore them and just try to redownload the file
 				
 				URLConnection urlcon;
-				if (prox != null)
-					urlcon = new URL(mod.url).openConnection(prox);
-				else
-					urlcon = new URL(mod.url).openConnection();
-				FileDownloader fd = new FileDownloader(urlcon, mod.type.getDir(packDir), mod.filename);
+				if (prox != null) urlcon = new URL(mod.url).openConnection(prox);
+				else urlcon = new URL(mod.url).openConnection();
+				FileDownloader fd = new FileDownloader(urlcon, mod.type.getDir(packDir), mod.getFilename());
 				Future<FileDownloader> fut = downloadService.submit(fd);
 				futureList.add(new DownloadData(fut, mod));
 				alm.add(fd);
@@ -111,19 +115,19 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 			for(DownloadData data : futureList) {
 				try {
 					FileDownloader fd = data.future.get();
-					data.modfile.filename = fd.getFile().getName();
-					data.modfile.md5 = fd.getMD5();
+					data.modfile.updateFilename(fd.getFile().getName());
+					data.modfile.updateMD5(fd.getMD5());
 					packData.updateMod(data.modfile);
 					if (data.modfile.type == ModType.Native) {
 						for(File ff : Utils.extractZip(fd.getFile())) {
 							ModFile mf = new ModFile(ff.getName(), ModType.Native, null);
-							mf.md5 = Utils.getMD5(ff);
+							mf.setMD5(Utils.getMD5(ff));
 							packData.updateMod(mf);
 						}
 					}
 					if (data.modfile.name.equals("minecraft.jar")) {
 						MinecraftLauncher.killMetaInf(fd.getFile());
-						data.modfile.md5 = Utils.getMD5(fd.getFile());
+						data.modfile.setMD5(Utils.getMD5(fd.getFile()));
 						packData.updateMod(data.modfile);
 					}
 				} catch (ExecutionException e) {
@@ -153,10 +157,13 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 		String[] binFileNames = {"jinput.jar", "lwjgl.jar", "lwjgl_util.jar"};
 		for(String bfn : binFileNames) {
 			ModFile mf = new ModFile(bfn, ModType.Bin, baseurl + bfn);
+			mf.setVersion(new VersionData(0));
 			fileList.add(mf);
 		}
 		ModFile mcJar = new ModFile("minecraft.jar", ModType.Bin, modpack.mcversion.getJarUrl());
+		mcJar.setVersion(new VersionData(0));
 		ModFile mcNatives = new ModFile(OS.nativesJar(), ModType.Native, baseurl + OS.nativesJar());
+		mcNatives.setVersion(new VersionData(0));
 		fileList.add(mcJar);
 		fileList.add(mcNatives);
 	}

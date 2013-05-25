@@ -1,6 +1,8 @@
 package com.github.modlauncher.pack;
 
+import com.github.modlauncher.VersionData;
 import com.github.modlauncher.exceptions.InvalidModpackException;
+import com.github.modlauncher.exceptions.HashComparionException;
 import com.github.modlauncher.util.JsonUtils;
 import com.google.gson.JsonObject;
 
@@ -14,12 +16,15 @@ public class ModFile {
 	public ModType type = null;
 	public String name = null;
 	public String url = null;
-	public String md5 = null;
 	public boolean isArchive = false;
-	public Download download = Download.Direct;
+	public boolean newerThanCache = false;
 	
-	/** The filename to save to */
-	public String filename;
+	private String md5 = null;
+	private VersionData version = null;
+	private String filename;
+	
+	private String cacheFilename = null;
+	private String cacheMD5 = null;
 
 	public ModFile() {
 	}
@@ -36,16 +41,80 @@ public class ModFile {
 	}
 	
 	public void loadJson(JsonObject obj, String oname) throws InvalidModpackException {
+		// required
 		name = oname;
 		url = JsonUtils.validateString(obj,"url",true);
-		md5 = JsonUtils.validateString(obj,"md5",false);
+		version = VersionData.create(JsonUtils.validateString(obj, "version", false));
 		type = new JsonUtils.TL<ModType>(ModType.class).safeGetEnum(obj, "type");
-		if (obj.has("download"))
-			download = new JsonUtils.TL<Download>().safeGetEnum(obj, "download");
+		
+		// optional
+		md5 = JsonUtils.validateString(obj,"md5",false);
 		filename = JsonUtils.validateString(obj,"filename",false);
 	}
 	
+	public boolean compareMD5(String hash) {
+		if (md5 == null) {
+			return true;
+		} else {
+			return md5.equals(hash);
+		}
+	}
 	
+	public boolean updateMD5(String hash) {
+		if (md5 == null) {
+			md5 = hash;
+			return true;
+		}
+		else {
+			if (md5.equals(hash))
+				return false;
+			else
+				throw new HashComparionException("MD5s were not equal");
+		}
+	}
 	
+	/**
+	 * Tries to set the filename. If the filename is already set this does nothing.
+	 * @param fname New filename
+	 * @return true if the filename was changed false otherwise
+	 */
+	public boolean updateFilename(String fname) {
+		if (filename == null) {
+			filename = fname;
+			return true;
+		}
+		return false;
+	}
 	
+	public String getMD5() {
+		return md5 != null ? md5 : cacheMD5;
+	}
+
+	public void setMD5(String md5) {
+		this.md5 = md5;
+	}
+
+	public String getFilename() {
+		return filename != null ? filename : cacheFilename;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
+	}
+
+	public VersionData getVersion() {
+		return version;
+	}
+
+	public void setVersion(VersionData version) {
+		this.version = version;
+	}
+	
+	public void setCacheFilename(String fname) {
+		this.cacheFilename = fname;
+	}
+	
+	public void setCacheMD5(String hash) {
+		this.cacheMD5 = hash;
+	}
 }

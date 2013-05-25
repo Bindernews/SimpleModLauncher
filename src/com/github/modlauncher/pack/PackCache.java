@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import com.github.modlauncher.OS;
+import com.github.modlauncher.VersionData;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -31,8 +32,14 @@ public class PackCache {
 		}
 		for(ModFile mf : pack.getMods()) {
 			if (isModDefined(mf)) {
-				mf.filename = getFilename(mf);
-				mf.md5 = getMD5(mf);
+				mf.setCacheFilename(getFilename(mf));
+				mf.setCacheMD5(getMD5(mf));
+				int comp = mf.getVersion().compareTo(getVersion(mf));
+				if (comp > 0)
+					mf.newerThanCache = true;
+			}
+			else {
+				mf.newerThanCache = true;
 			}
 		}
 	}
@@ -49,26 +56,42 @@ public class PackCache {
 		JsonObject obj = root.get(modfile.name).getAsJsonObject();
 		return obj.has("filename")
 				&& obj.has("md5")
-				&& obj.has("type");
+				&& obj.has("url")
+				&& obj.has("type")
+				&& obj.has("version");
+	}
+	
+	public boolean updateMod(ModFile modfile) {
+		putIfValid(modfile.name, "filename", modfile.getFilename());
+		putIfValid(modfile.name, "md5", modfile.getMD5());
+		putIfValid(modfile.name, "url", modfile.url);
+		putIfValid(modfile.name, "type", modfile.type.name());
+		VersionData vd = modfile.getVersion();
+		vd = vd != null ? vd : new VersionData(0);
+		putIfValid(modfile.name, "version", vd.toString());
+		return true;
 	}
 	
 	public String getFilename(ModFile modfile) {
 		return getModProperty(modfile.name, "filename");
 	}
 	
+	public VersionData getVersion(ModFile modfile) {
+		String prop = getModProperty(modfile.name, "version");
+		if (prop == null) return null;
+		return VersionData.create(prop);
+	}
+	
 	public String getMD5(ModFile modfile) {
 		return getModProperty(modfile.name, "md5");
 	}
 	
-	public Modpack getModpack() {
-		return modpack;
+	public String getURL(ModFile modfile) {
+		return getModProperty(modfile.name, "url");
 	}
 	
-	public boolean updateMod(ModFile modfile) {
-		putIfValid(modfile.name, "filename", modfile.filename);
-		putIfValid(modfile.name, "md5", modfile.md5);
-		putIfValid(modfile.name, "type", modfile.type.name());
-		return true;
+	public Modpack getModpack() {
+		return modpack;
 	}
 	
 	protected String getModProperty(String modname, String prop) {
