@@ -73,8 +73,12 @@ public class MinecraftFrame extends JFrame {
 
 		pack();
 		validate();
-		appletWrap.init();
-		appletWrap.start();
-		setVisible(true);
+		new Thread() {
+			public void run() {
+				appletWrap.init();
+				appletWrap.start();
+				setVisible(true);
+			}
+		}.start();
 	}
 }

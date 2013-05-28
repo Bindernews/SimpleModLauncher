@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -66,8 +65,8 @@ public class Launchpad {
 						}
 						frame.getLoginPanel().setUserPassArray(unpw[0][0], unpw[0][1]);*/
 						UserPass up = new UserPass(lastLoginStr);
-						frame.getLoginPanel().setUserPass(up);
-						frame.getLoginPanel().getChkRemember().setSelected(true);
+						frame.setUserPass(up);
+						frame.getChkRemember().setSelected(true);
 					}
 				}
 				catch(Exception e) {
@@ -148,7 +147,7 @@ public class Launchpad {
 	}
 	
 	public void playOffline() {
-		String user = frame.getLoginPanel().getUsername();
+		String user = frame.getUsername();
 		RESPONSE = new LoginResponse("0: :" + user + ": ");
 		runLaunchGame();
 	}
@@ -179,9 +178,11 @@ public class Launchpad {
 		List<FileStatus> statusList;
 		EnumSet<FileStatus> statusSet, newStatusSet;
 		GameUpdateWorker updateWorker;
-		ProgressState progress = ProgressState.None;
 		VersionData nextVersion;
 		JsonElement nextJson;
+		
+		ProgressState progress = ProgressState.None;
+		frame().getOptionsGui().updateSettings();
 		try {
 			progress = ProgressState.ReadingCache;
 			cache = new PackCache(settings.getModpack());

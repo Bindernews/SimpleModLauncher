@@ -1,6 +1,7 @@
 package com.github.vortexellauncher.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;
@@ -58,6 +59,7 @@ public class DownloadManagerGui extends JDialog {
 			panel.setLayout(new BorderLayout());
 			panel.add(progressBar, BorderLayout.CENTER);
 			panel.add(fileName, BorderLayout.NORTH);
+			progressBar.setBackground(Color.GREEN);
 		}
 		
 		@Override

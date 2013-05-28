@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -61,11 +60,12 @@ public class MinecraftLauncher {
 		
 		ArrayList<String> procArgs = new ArrayList<String>();
 		procArgs.add(jvmPath);
+		procArgs.addAll(Launchpad.getSettings().getVMParams());
 		procArgs.add("-Xmx" + Launchpad.getSettings().getRamMax() + "M");
-		//procArgs.add("-XX:+UseConcMarkSweepGC");
-		//procArgs.add("-XX:+CMSIncrementalMode");
+		procArgs.add("-XX:+UseConcMarkSweepGC");
+		procArgs.add("-XX:+CMSIncrementalMode");
 		procArgs.add("-XX:+AggressiveOpts");
-		//procArgs.add("-XX:+CMSClassUnloadingEnabled");
+		procArgs.add("-XX:+CMSClassUnloadingEnabled");
 		procArgs.add("-XX:MaxPermSize=128m");
 		procArgs.add("-cp");
 		procArgs.add(System.getProperty("java.class.path") + File.pathSeparator + cpBuilder.toString());
@@ -85,12 +85,6 @@ public class MinecraftLauncher {
 	}
 	
 	public static void main(String[] args) {
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				e.printStackTrace();
-			}
-		});
 		try {
 			String basepathStr = args[0],
 					username = args[1],

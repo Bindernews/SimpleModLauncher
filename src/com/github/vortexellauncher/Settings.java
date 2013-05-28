@@ -8,9 +8,9 @@ import com.github.vortexellauncher.pack.Modpack;
 
 public class Settings {
 
+	private List<String> vmargs;
 	private int ramMax;
 	private Proxy proxy;
-	private List<String> vmparams;
 	private Modpack modpack;
 	private boolean redirectOutputToFile = false;
 	private String modpackName;
@@ -18,16 +18,16 @@ public class Settings {
 	private static boolean debugMode = false;
 	
 	public Settings() {
-		ramMax = 512;
-		vmparams = new ArrayList<String>();
+		vmargs = new ArrayList<String>();
 	}
 	
 	public void setVMParams(List<String> params) {
-		vmparams = params;
+		vmargs.clear();
+		vmargs.addAll(params);
 	}
 	
 	public List<String> getVMParams() {
-		return vmparams;
+		return vmargs;
 	}
 	
 	public void setProxy(Proxy aproxy) {
