@@ -6,13 +6,13 @@ import java.awt.Font;
 import javax.swing.JDialog;
 import javax.swing.JTextArea;
 
-import com.github.vortexellauncher.Launchpad;
+import com.github.vortexellauncher.Launch;
 
 public class GuiUtils {
 
 	
 	public static void reportMessage(String title, String message) {
-		JDialog jd = new JDialog(Launchpad.frame(), title, true);
+		JDialog jd = new JDialog(Launch.frame(), title, true);
 		jd.setResizable(false);
 		
 		JTextArea jta = new JTextArea(message);

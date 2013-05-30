@@ -24,6 +24,7 @@ public class LoginWorker extends SwingWorker<String, Void> {
 				+ URLEncoder.encode(username, "UTF-8") + "&password=" 
 				+ URLEncoder.encode(password, "UTF-8") + "&version=13");
 		HttpURLConnection urlcon = (HttpURLConnection)url.openConnection();
+		urlcon.setReadTimeout(2000);
 		return NetUtils.downloadString(urlcon);
 	}
 }

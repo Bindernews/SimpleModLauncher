@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 
-import com.github.vortexellauncher.Launchpad;
+import com.github.vortexellauncher.Launch;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -39,7 +39,7 @@ public class OfflineDialog extends JDialog {
 				JButton btnYes = new JButton("Yes");
 				btnYes.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						Launchpad.i().playOffline();
+						Launch.i().playOffline();
 						dispose();
 					}
 				});
@@ -50,7 +50,8 @@ public class OfflineDialog extends JDialog {
 				JButton btnNo = new JButton("No");
 				btnNo.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						Launchpad.i().resetLogin();
+						Launch.i().resetLogin();
+						Launch.frame().setEnabled(true);
 						dispose();
 					}
 				});

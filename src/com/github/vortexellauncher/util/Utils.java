@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,9 +15,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 
 public class Utils {
 	
@@ -124,11 +119,5 @@ public class Utils {
 		return fileList;
 	}
 	
-	public static JsonElement readJsonFile(URL url) throws IOException {
-		InputStreamReader r = new InputStreamReader(url.openStream());
-		JsonParser parser = new JsonParser();
-		JsonElement elem = parser.parse(r);
-		r.close();
-		return elem;
-	}
+	
 }

@@ -10,7 +10,7 @@ import java.awt.Insets;
 import javax.swing.JCheckBox;
 import javax.swing.JTextField;
 
-import com.github.vortexellauncher.Launchpad;
+import com.github.vortexellauncher.Launch;
 import com.github.vortexellauncher.UserPass;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -74,7 +74,7 @@ public class MainFrame extends JFrame {
 		btnLogin = new JButton("Login");
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Launchpad.i().attemptLogin(getUsername(), getPassword(), chkRemember.isSelected());
+				Launch.i().attemptLogin(getUsername(), getPassword(), chkRemember.isSelected());
 			}
 		});
 		GridBagConstraints gbc_btnLogin = new GridBagConstraints();

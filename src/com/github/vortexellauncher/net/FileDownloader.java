@@ -2,7 +2,6 @@ package com.github.vortexellauncher.net;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -39,13 +38,7 @@ public class FileDownloader implements Callable<FileDownloader> {
 		FileOutputStream fos = null;
 		DigestInputStream digis = null;
 		
-		setupHttpConnection(urlcon);
-		urlcon.connect();
-		URLConnection ncon = followRedirect(urlcon);
-		if (ncon != urlcon) {
-			setupHttpConnection(ncon);
-			ncon.connect();
-		}
+		URLConnection ncon = urlcon;
 		
 		if (fileName == null) {
 			fileName = getURL().getPath(); // set it as a fallback
@@ -87,26 +80,6 @@ public class FileDownloader implements Callable<FileDownloader> {
 		rbc.close();
 		md5Sum = Utils.bytesToHex(md.digest());
 		return this;
-	}
-	
-	protected URLConnection followRedirect(URLConnection urlcon) throws IOException {
-		if (urlcon instanceof HttpURLConnection) {
-			HttpURLConnection htcon = (HttpURLConnection)urlcon;
-			if (htcon.getResponseCode() == 307) {
-				return new URL(htcon.getHeaderField("Location")).openConnection();
-			}
-		}
-		return urlcon;
-	}
-	
-	protected void setupHttpConnection(URLConnection urlcon) {
-		if (urlcon instanceof HttpURLConnection) {
-			HttpURLConnection htcon = (HttpURLConnection)urlcon;
-			htcon.setInstanceFollowRedirects(true);
-			htcon.addRequestProperty("user-agent", "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.64 Safari/537.31");
-		}
-		urlcon.setDoInput(true);
-		urlcon.setAllowUserInteraction(true);
 	}
 	
 	public URL getURL() {

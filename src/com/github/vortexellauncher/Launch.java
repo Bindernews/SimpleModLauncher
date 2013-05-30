@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -23,12 +24,15 @@ import com.github.vortexellauncher.gui.MainFrame;
 import com.github.vortexellauncher.gui.OfflineDialog;
 import com.github.vortexellauncher.gui.Res;
 import com.github.vortexellauncher.launch.MinecraftLauncher;
+import com.github.vortexellauncher.net.NetResolver;
 import com.github.vortexellauncher.pack.FileStatus;
 import com.github.vortexellauncher.pack.ModFile;
 import com.github.vortexellauncher.pack.ModType;
 import com.github.vortexellauncher.pack.Modpack;
 import com.github.vortexellauncher.pack.PackCache;
+import com.github.vortexellauncher.pack.PackMetaManager;
 import com.github.vortexellauncher.util.ErrorUtils;
+import com.github.vortexellauncher.util.JsonUtils;
 import com.github.vortexellauncher.util.Utils;
 import com.github.vortexellauncher.workers.GameUpdateWorker;
 import com.github.vortexellauncher.workers.LoginWorker;
@@ -40,9 +44,12 @@ import com.google.gson.JsonElement;
  * @author Bindernews
  *
  */
-public class Launchpad {
+public class Launch {
+	
+	public static final VersionData VERSION = new VersionData(1,0,0,0);
+	public static final String UPDATE_URL = "https://googledrive.com/host/0Bw00_I2xsVk3WnNQaTRNby1GeHc/launcher_version.json";
 
-	private static Launchpad instance = null;
+	private static Launch instance = null;
 	private MainFrame frame;
 	private LoginResponse RESPONSE = null;
 	private Settings settings;
@@ -50,7 +57,7 @@ public class Launchpad {
 	private ExecutorService workThread = Executors.newSingleThreadExecutor();
 	private File lastLoginFile = new File(OS.dataDir(), "loginlast");
 	
-	private Launchpad() {
+	private Launch() {
 		settings = new Settings();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -176,27 +183,39 @@ public class Launchpad {
 		PackValidator validator;
 		List<ModFile> fileList;
 		List<FileStatus> statusList;
-		EnumSet<FileStatus> statusSet, newStatusSet;
+		EnumSet<FileStatus> statusSet;
 		GameUpdateWorker updateWorker;
-		VersionData nextVersion;
-		JsonElement nextJson;
+		PackMetaManager metaManager;
+		Modpack modpack;
 		
 		ProgressState progress = ProgressState.None;
 		frame().getOptionsGui().updateSettings();
 		try {
 			progress = ProgressState.ReadingCache;
-			cache = new PackCache(settings.getModpack());
+			System.out.println("Launch status: " + progress.name());
+			metaManager = new PackMetaManager();
+			modpack = metaManager.loadModpack(settings.getModpackName());
+			if (modpack.getUpdateURL() != null) {
+				progress = ProgressState.CheckingForUpdates;
+				System.out.println("Launch status: " + progress.name());
+				try {
+					JsonElement nextJson = JsonUtils.readJsonURL(new URL(modpack.getUpdateURL()));
+					Modpack nextPack = new Modpack(nextJson.getAsJsonObject(), modpack.getUpdateURL());
+					if (nextPack.version.compareTo(modpack.version) > 0) {
+						metaManager.updatePack(nextJson.getAsJsonObject(), modpack.name);
+						modpack = nextPack;
+					}
+				} catch (IOException e) {
+					System.err.println("Failed to check for modpack update");
+					e.printStackTrace();
+				}
+			}
+			cache = new PackCache(modpack);
 			fileList = new ArrayList<ModFile>(cache.getModpack().getMods());
 			populateWithMCCoreFiles(cache, fileList);
 			
-			/*
-			if (settings.getModpack().getUpdateURL() != null) {
-				progress = ProgressState.CheckingForUpdates;
-				nextJson = Utils.readJsonFile(new URL(settings.getModpack().getUpdateURL()));
-			}
-			*/
-			
 			progress = ProgressState.Validating;
+			System.out.println("Launch status: " + progress.name());
 			validator = new PackValidator(cache, fileList);
 			statusList = validator.runHere();
 			statusSet = EnumSet.copyOf(statusList);
@@ -207,28 +226,21 @@ public class Launchpad {
 				}
 			} else {
 				progress = ProgressState.Updating;
+				System.out.println("Launch status: " + progress.name());
 				if (setsOverlap(statusSet, FileStatus.StatusDoDownload)) {
 					updateWorker = new GameUpdateWorker(cache, fileList, statusList);
 					updateWorker.execute();
 					updateWorker.get();
-					
-					/*
-					progress = ProgressState.Revalidating;
-					validator = new PackValidator(cache, fileList);
-					newStatusSet = EnumSet.copyOf(validator.runHere());
-					if (!EnumSet.of(FileStatus.Valid).containsAll(newStatusSet)) {
-						throw new ValidationException("Revalidation failed");
-					}
-					*/
 				}
 			}
 			progress = ProgressState.Launching;
-			MinecraftLauncher.launchMinecraft(settings.getModpack(), RESPONSE.username, RESPONSE.sessionID);
+			System.out.println("Launch status: " + progress.name());
+			MinecraftLauncher.launchMinecraft(modpack, RESPONSE.username, RESPONSE.sessionID);
 			frame.dispose();
 		} catch (ExecutionException e) {
 			ErrorUtils.showException("Exception occured while " + progress.name(), e.getCause(), true);
 			e.printStackTrace();
-		} catch (IOException | NullPointerException | ValidationException | InterruptedException e) {
+		} catch (IOException | NullPointerException | ValidationException | InterruptedException | InvalidModpackException e) {
 			ErrorUtils.showException("Exception occured while " + progress.name(), e, true);
 			e.printStackTrace();
 		}
@@ -268,12 +280,13 @@ public class Launchpad {
 		
 		// create the launchpad and start the program
 		try {
-			instance = new Launchpad();
-			JsonElement elem = Utils.readJsonFile(Res.getURL("res/vortexel_pack.json"));
-			Modpack pack = new Modpack(elem.getAsJsonObject(), "vortexel_pack.json");
-			//JsonElement elem = Utils.readJsonFile(Res.getURL("res/modpack.json"));
-			//Modpack pack = new Modpack(elem.getAsJsonObject(), "modpack.json");
-			instance.settings.setModpack(pack);
+			instance = new Launch();
+			PackMetaManager metaManager = new PackMetaManager();
+			if (!metaManager.hasPack("Vortexel Modpack")) {
+				JsonElement elem = JsonUtils.readJsonURL(Res.getURL("res/vortexel_pack.json"));
+				metaManager.updatePack(elem.getAsJsonObject(), "vortexel_pack.json");
+			}
+			instance.settings.setModpackName("Vortexel Modpack");
 		} catch (IOException e) {
 			ErrorUtils.showException(e, true);
 		}
@@ -290,6 +303,7 @@ public class Launchpad {
 		ModFile mcJar = new ModFile("minecraft.jar", ModType.Bin, packData.getModpack().mcversion.getJarUrl());
 		mcJar.setVersion(new VersionData(0));
 		ModFile mcNatives = new ModFile(OS.nativesJar(), ModType.Native, baseurl + OS.nativesJar());
+		mcNatives.isArchive = true;
 		mcNatives.setVersion(new VersionData(0));
 		fileList.add(mcJar);
 		fileList.add(mcNatives);
@@ -299,7 +313,7 @@ public class Launchpad {
 		RESPONSE = null;
 	}
 	
-	public static Launchpad i() {
+	public static Launch i() {
 		return instance;
 	}
 	public static MainFrame frame() {

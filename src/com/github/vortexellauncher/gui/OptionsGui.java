@@ -12,7 +12,7 @@ import javax.swing.JTextField;
 import javax.swing.JFormattedTextField;
 import javax.swing.text.NumberFormatter;
 
-import com.github.vortexellauncher.Launchpad;
+import com.github.vortexellauncher.Launch;
 import com.github.vortexellauncher.Settings;
 
 public class OptionsGui extends JDialog {
@@ -85,7 +85,7 @@ public class OptionsGui extends JDialog {
 	}
 	
 	public void updateSettings() {
-		Settings sets = Launchpad.getSettings();
+		Settings sets = Launch.getSettings();
 		sets.setRamMax(getRamMax());
 		sets.setVMParams(Arrays.asList(getVmargs().split(" ")));
 	}

@@ -17,7 +17,7 @@ import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
-import com.github.vortexellauncher.Launchpad;
+import com.github.vortexellauncher.Launch;
 import com.github.vortexellauncher.OS;
 import com.github.vortexellauncher.Settings;
 import com.github.vortexellauncher.pack.ModFile;
@@ -60,8 +60,8 @@ public class MinecraftLauncher {
 		
 		ArrayList<String> procArgs = new ArrayList<String>();
 		procArgs.add(jvmPath);
-		procArgs.addAll(Launchpad.getSettings().getVMParams());
-		procArgs.add("-Xmx" + Launchpad.getSettings().getRamMax() + "M");
+		procArgs.addAll(Launch.getSettings().getVMParams());
+		procArgs.add("-Xmx" + Launch.getSettings().getRamMax() + "M");
 		procArgs.add("-XX:+UseConcMarkSweepGC");
 		procArgs.add("-XX:+CMSIncrementalMode");
 		procArgs.add("-XX:+AggressiveOpts");
@@ -141,7 +141,7 @@ public class MinecraftLauncher {
 	}
 	
 	public static String getCurrentJar() {
-		String val = new File(Launchpad.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
+		String val = new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
 		System.out.println(val);
 		return val;
 	}

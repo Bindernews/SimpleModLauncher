@@ -14,15 +14,15 @@ import java.util.concurrent.Future;
 
 import javax.swing.SwingWorker;
 
-import com.github.vortexellauncher.Launchpad;
+import com.github.vortexellauncher.Launch;
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.gui.ArrayListModel;
 import com.github.vortexellauncher.gui.DownloadManagerGui;
 import com.github.vortexellauncher.launch.MinecraftLauncher;
 import com.github.vortexellauncher.net.FileDownloader;
+import com.github.vortexellauncher.net.NetResolver;
 import com.github.vortexellauncher.pack.FileStatus;
 import com.github.vortexellauncher.pack.ModFile;
-import com.github.vortexellauncher.pack.ModType;
 import com.github.vortexellauncher.pack.PackCache;
 import com.github.vortexellauncher.util.ErrorUtils;
 import com.github.vortexellauncher.util.Utils;
@@ -62,29 +62,25 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 	}
 	
 	public boolean setupPack() throws IOException, InvalidModpackException {
-		dmanagerGui = new DownloadManagerGui(Launchpad.frame());
+		dmanagerGui = new DownloadManagerGui(Launch.frame());
 		dmanagerGui.getList().setModel(alm);
+		dmanagerGui.setVisible(true);
 		
 		if (!makeDirectoriesExist()) {
 			throw new IOException("Error creating directories");
 		}
 		
 		try {
-			Proxy prox = Launchpad.getSettings().getProxy(); 
+			Proxy prox = Launch.getSettings().getProxy(); 
 			for(int i=0; i<fileList.size(); i++) {
 				if (statusList.get(i).download == 0)
 					continue;
 				ModFile mod = fileList.get(i);
-				URLConnection urlcon;
-				if (prox != null) urlcon = new URL(mod.url).openConnection(prox);
-				else urlcon = new URL(mod.url).openConnection();
+				URLConnection urlcon = NetResolver.resolveConnection(new URL(mod.url), prox);
 				FileDownloader fd = new FileDownloader(urlcon, mod.type.getDir(packDir), mod.getFilename());
 				Future<FileDownloader> fut = downloadService.submit(fd);
 				futureList.add(new DownloadData(fut, mod));
 				alm.add(fd);
-			}
-			if (alm.size() > 0) {
-				dmanagerGui.setVisible(true);
 			}
 			boolean allDone = false;
 			while(!allDone) {
@@ -95,16 +91,17 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 				publish(0.0f);
 			}
 			dmanagerGui.dispose();
-			Launchpad.frame().setEnabled(false);
+			Launch.frame().setEnabled(false);
 			for(DownloadData data : futureList) {
 				try {
 					FileDownloader fd = data.future.get();
 					data.modfile.updateFilename(fd.getFile().getName());
 					data.modfile.updateMD5(fd.getMD5());
 					packData.updateMod(data.modfile);
-					if (data.modfile.type == ModType.Native) {
+					if (data.modfile.isArchive) {
+						String archiveURLStr = fd.getFile().toURI().toURL().toExternalForm();
 						for(File ff : Utils.extractZip(fd.getFile())) {
-							ModFile mf = new ModFile(ff.getName(), ModType.Native, null);
+							ModFile mf = new ModFile(ff.getName(), data.modfile.type, archiveURLStr);
 							mf.setMD5(Utils.getMD5(ff));
 							packData.updateMod(mf);
 						}
