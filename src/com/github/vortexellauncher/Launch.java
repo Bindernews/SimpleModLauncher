@@ -252,7 +252,7 @@ public class Launch {
 		}
 		ModFile mcJar = new ModFile("minecraft.jar", ModType.Bin, packData.getModpack().mcversion.getJarUrl());
 		mcJar.setVersion(new VersionData(0));
-		ModFile mcNatives = new ModFile(OS.nativesJar(), ModType.Native, baseurl + OS.nativesJar());
+		ModFile mcNatives = new ModFile(OS.nativesJar(), ModType.Native, OS.nativesURL());
 		mcNatives.isArchive = true;
 		mcNatives.setVersion(new VersionData(0));
 		fileList.add(mcJar);

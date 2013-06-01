@@ -9,16 +9,23 @@ public enum OS {
 		public String getNatives() {
 			return "windows_natives.jar";
 		}
+		public String getNativesURL() {
+			return "https://s3.amazonaws.com/MinecraftDownload/" + getNatives(); 
+		}
 		public String getMCFolderName() {
 			return ".minecraft";
 		}
 	},
 	Mac {
 		public String getDataDir() {
-			return "~/Library/Application Support/"+LAUNCHER_DIR;
+			return System.getenv("HOME") + "/Library/Application Support/"+LAUNCHER_DIR;
 		}
 		public String getNatives() {
 			return "macosx_natives.jar";
+		}
+		public String getNativesURL () {
+			// because this is running on Java 7 the newer LWJGL mac osx libraries are needed
+			return "https://github.com/Bindernews/SimpleModLauncher/blob/master/files/macosx_natives.zip?raw=true";
 		}
 		public String getMCFolderName() {
 			return "minecraft";
@@ -30,6 +37,9 @@ public enum OS {
 		}
 		public String getNatives() {
 			return "linux_natives.jar";
+		}
+		public String getNativesURL() {
+			return "https://s3.amazonaws.com/MinecraftDownload/" + getNatives();
 		}
 		public String getMCFolderName() {
 			return ".minecraft";
@@ -54,16 +64,18 @@ public enum OS {
 	public static String dataDir() {
 		return currentOS.getDataDir();
 	}
-	
 	public static String nativesJar() {
 		return currentOS.getNatives();
 	}
-	
+	public static String nativesURL() {
+		return currentOS.getNativesURL();
+	}
 	public static String mcFolderName() {
 		return currentOS.getMCFolderName();
 	}
 	
 	public abstract String getDataDir();
 	public abstract String getNatives();
+	public abstract String getNativesURL();
 	public abstract String getMCFolderName();
 }
