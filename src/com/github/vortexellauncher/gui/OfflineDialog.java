@@ -3,17 +3,16 @@ package com.github.vortexellauncher.gui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JLabel;
 
-import com.github.vortexellauncher.Launch;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import com.github.vortexellauncher.Main;
 
 @SuppressWarnings("serial")
 public class OfflineDialog extends JDialog {
@@ -39,7 +38,7 @@ public class OfflineDialog extends JDialog {
 				JButton btnYes = new JButton("Yes");
 				btnYes.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						Launch.i().playOffline();
+						Main.launchpad().playOffline();
 						dispose();
 					}
 				});
@@ -50,8 +49,8 @@ public class OfflineDialog extends JDialog {
 				JButton btnNo = new JButton("No");
 				btnNo.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						Launch.i().resetLogin();
-						Launch.frame().setEnabled(true);
+						Main.launchpad().resetLogin();
+						Main.frame().setEnabled(true);
 						dispose();
 					}
 				});

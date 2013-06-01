@@ -2,4 +2,5 @@ lib/
 bin/
 .classpath
 .project
+.settings/
 ant_export.xml

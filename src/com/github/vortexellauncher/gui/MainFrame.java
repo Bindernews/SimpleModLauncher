@@ -1,19 +1,23 @@
 package com.github.vortexellauncher.gui;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JButton;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import javax.swing.JCheckBox;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 
-import com.github.vortexellauncher.Launch;
+import com.github.vortexellauncher.Main;
+import com.github.vortexellauncher.Settings;
 import com.github.vortexellauncher.UserPass;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame {
@@ -26,20 +30,26 @@ public class MainFrame extends JFrame {
 	private JTextField statusBar;
 	
 	private OptionsGui optionsGui;
+	private JButton btnDebug;
 
 	public MainFrame() {
 		setTitle("Vortexel Launcher");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				dispose();
+				Main.attemptExit();
+			}
+		});
 		setFont(Res.mcfont);
-		setBounds(100, 100, 277, 241);
+		setBounds(100, 100, 279, 267);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		GridBagLayout gbl_contentPane = new GridBagLayout();
 		gbl_contentPane.columnWidths = new int[]{114, 0, 0};
-		gbl_contentPane.rowHeights = new int[]{0, 0, 0, 0, 0, 0};
+		gbl_contentPane.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0};
 		gbl_contentPane.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		contentPane.setLayout(gbl_contentPane);
 		
 		txtUsername = new HelpTextField();
@@ -74,7 +84,7 @@ public class MainFrame extends JFrame {
 		btnLogin = new JButton("Login");
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Launch.i().attemptLogin(getUsername(), getPassword(), chkRemember.isSelected());
+				Main.launchpad().attemptLogin(getUsername(), getPassword(), chkRemember.isSelected());
 			}
 		});
 		GridBagConstraints gbc_btnLogin = new GridBagConstraints();
@@ -103,12 +113,30 @@ public class MainFrame extends JFrame {
 		statusBar.setEnabled(false);
 		statusBar.setEditable(false);
 		GridBagConstraints gbc_statusBar = new GridBagConstraints();
+		gbc_statusBar.insets = new Insets(0, 0, 5, 0);
 		gbc_statusBar.gridwidth = 2;
 		gbc_statusBar.fill = GridBagConstraints.HORIZONTAL;
 		gbc_statusBar.gridx = 0;
 		gbc_statusBar.gridy = 4;
 		contentPane.add(statusBar, gbc_statusBar);
 		statusBar.setColumns(10);
+		
+		btnDebug = new JButton("Debug");
+		btnDebug.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Settings.setDebugMode(true);
+				Main.logView().setVisible(true);
+			}
+		});
+		GridBagConstraints gbc_btnDebug = new GridBagConstraints();
+		gbc_btnDebug.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnDebug.gridwidth = 2;
+		gbc_btnDebug.insets = new Insets(0, 0, 0, 5);
+		gbc_btnDebug.gridx = 0;
+		gbc_btnDebug.gridy = 5;
+		contentPane.add(btnDebug, gbc_btnDebug);
+		
+		//txtUsername.setFont(Res.mcfont.deriveFont(12.0f));
 		
 		pack();
 		

@@ -16,7 +16,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
 
-import com.github.vortexellauncher.Launch;
+import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.net.FileDownloader;
 
 public class DownloadManagerGui extends JDialog {
@@ -30,7 +30,7 @@ public class DownloadManagerGui extends JDialog {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent e) {
-				Launch.frame().setEnabled(true);
+				Main.frame().setEnabled(true);
 			}
 		});
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);

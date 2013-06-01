@@ -8,7 +8,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
-import com.github.vortexellauncher.Launch;
+import com.github.vortexellauncher.Main;
 
 public class ErrorUtils {
 	
@@ -17,7 +17,7 @@ public class ErrorUtils {
 	}
 	
 	public static void showException(String message, Throwable e, boolean fatal) {
-		JDialog jd = new JDialog(Launch.frame(), "Error", true);
+		JDialog jd = new JDialog(Main.frame(), "Error", true);
 		jd.getContentPane().setLayout(new BorderLayout());
 		jd.getContentPane().add(new JLabel("An exception was thrown"), BorderLayout.NORTH);
 		JTextArea jta = new JTextArea(message + "\n" + getExceptionString(e));

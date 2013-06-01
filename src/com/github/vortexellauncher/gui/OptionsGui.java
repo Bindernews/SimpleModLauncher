@@ -7,12 +7,12 @@ import java.awt.Insets;
 import java.util.Arrays;
 
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-import javax.swing.JFormattedTextField;
 import javax.swing.text.NumberFormatter;
 
-import com.github.vortexellauncher.Launch;
+import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.Settings;
 
 public class OptionsGui extends JDialog {
@@ -85,7 +85,7 @@ public class OptionsGui extends JDialog {
 	}
 	
 	public void updateSettings() {
-		Settings sets = Launch.getSettings();
+		Settings sets = Main.settings();
 		sets.setRamMax(getRamMax());
 		sets.setVMParams(Arrays.asList(getVmargs().split(" ")));
 	}

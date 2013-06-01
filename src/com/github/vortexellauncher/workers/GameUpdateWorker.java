@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 
 import javax.swing.SwingWorker;
 
-import com.github.vortexellauncher.Launch;
+import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.gui.ArrayListModel;
 import com.github.vortexellauncher.gui.DownloadManagerGui;
@@ -62,7 +62,7 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 	}
 	
 	public boolean setupPack() throws IOException, InvalidModpackException {
-		dmanagerGui = new DownloadManagerGui(Launch.frame());
+		dmanagerGui = new DownloadManagerGui(Main.frame());
 		dmanagerGui.getList().setModel(alm);
 		dmanagerGui.setVisible(true);
 		
@@ -71,7 +71,7 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 		}
 		
 		try {
-			Proxy prox = Launch.getSettings().getProxy(); 
+			Proxy prox = Main.settings().getProxy(); 
 			for(int i=0; i<fileList.size(); i++) {
 				if (statusList.get(i).download == 0)
 					continue;
@@ -91,7 +91,7 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 				publish(0.0f);
 			}
 			dmanagerGui.dispose();
-			Launch.frame().setEnabled(false);
+			Main.frame().setEnabled(false);
 			for(DownloadData data : futureList) {
 				try {
 					FileDownloader fd = data.future.get();

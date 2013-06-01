@@ -1,9 +1,7 @@
 package com.github.vortexellauncher;
 
-import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -14,17 +12,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
-
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.exceptions.ValidationException;
-import com.github.vortexellauncher.gui.MainFrame;
 import com.github.vortexellauncher.gui.OfflineDialog;
-import com.github.vortexellauncher.gui.Res;
 import com.github.vortexellauncher.launch.MinecraftLauncher;
-import com.github.vortexellauncher.net.NetResolver;
 import com.github.vortexellauncher.pack.FileStatus;
 import com.github.vortexellauncher.pack.ModFile;
 import com.github.vortexellauncher.pack.ModType;
@@ -48,48 +39,32 @@ public class Launch {
 	
 	public static final VersionData VERSION = new VersionData(1,0,0,0);
 	public static final String UPDATE_URL = "https://googledrive.com/host/0Bw00_I2xsVk3WnNQaTRNby1GeHc/launcher_version.json";
-
-	private static Launch instance = null;
-	private MainFrame frame;
+	
 	private LoginResponse RESPONSE = null;
-	private Settings settings;
 	private ExecutorService driverThread = Executors.newSingleThreadExecutor();
 	private ExecutorService workThread = Executors.newSingleThreadExecutor();
-	private File lastLoginFile = new File(OS.dataDir(), "loginlast");
 	
-	private Launch() {
-		settings = new Settings();
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				frame = new MainFrame();
-				frame.setVisible(true);
-				try {
-					String lastLoginStr = Utils.simpleCryptIn(lastLoginFile);
-					if (lastLoginStr != null) {
-						/*String[] lines = lastLoginStr.split("\n");
-						UserPass[] uplist = new UserPass[lines.length];
-						for(int i=0; i<lines.length; i++) {
-						}
-						frame.getLoginPanel().setUserPassArray(unpw[0][0], unpw[0][1]);*/
-						UserPass up = new UserPass(lastLoginStr);
-						frame.setUserPass(up);
-						frame.getChkRemember().setSelected(true);
-					}
-				}
-				catch(Exception e) {
-					e.printStackTrace();
-				}
+	private static final File lastLoginFile = new File(OS.dataDir(), "loginlast");
+	
+	public Launch() {
+		try {
+			String lastLoginStr = Utils.simpleCryptIn(lastLoginFile);
+			if (lastLoginStr != null) {
+				UserPass up = new UserPass(lastLoginStr);
+				Main.frame().setUserPass(up);
+				Main.frame().getChkRemember().setSelected(true);
 			}
-		});
-		
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void attemptLogin(final String username, final String password, final boolean save) {
 		if (username.length() == 0) {
-			frame.setLoginStatus("No username");
+			Main.frame().setLoginStatus("No username");
 			return;
 		}
-		frame.setEnabled(false);
+		Main.frame().setEnabled(false);
 		LoginWorker worker = new LoginWorker(username, password) {
 			protected void done() {
 				workThread.execute(new Runnable() {
@@ -107,14 +82,14 @@ public class Launch {
 				} catch (ExecutionException e) {
 					if (e.getCause() instanceof IOException
 							|| e.getCause() instanceof MalformedURLException) {
-						OfflineDialog playOffline = new OfflineDialog(frame);
+						OfflineDialog playOffline = new OfflineDialog(Main.frame());
 						playOffline.setVisible(true);
 					}
 					return;
 				}
 				try {
 					RESPONSE = new LoginResponse(responseStr);
-					frame.setLoginStatus("Login succeded");
+					Main.frame().setLoginStatus("Login succeded");
 					if (save) {
 						try {
 							UserPass up = new UserPass(username, password);
@@ -130,20 +105,20 @@ public class Launch {
 					}
 					else {
 						if (responseStr.equalsIgnoreCase("bad login")) {
-							frame.setLoginStatus("Bad login");
+							Main.frame().setLoginStatus("Bad login");
 						}
 						else if (responseStr.equalsIgnoreCase("old version")) {
-							frame.setLoginStatus("Outdated launcher");
+							Main.frame().setLoginStatus("Outdated launcher");
 						}
 						else if (responseStr.startsWith("Account migrated, use e-mail")) {
-							frame.setLoginStatus("Login using your email account");
+							Main.frame().setLoginStatus("Login using your email account");
 						}
 						else {
-							frame.setLoginStatus(responseStr);
-							new OfflineDialog(frame).setVisible(true);
+							Main.frame().setLoginStatus(responseStr);
+							new OfflineDialog(Main.frame()).setVisible(true);
 						}
 					}
-					frame.setEnabled(true);
+					Main.frame().setEnabled(true);
 					return;
 				}
 				// log "Login complete"
@@ -154,7 +129,7 @@ public class Launch {
 	}
 	
 	public void playOffline() {
-		String user = frame.getUsername();
+		String user = Main.frame().getUsername();
 		RESPONSE = new LoginResponse("0: :" + user + ": ");
 		runLaunchGame();
 	}
@@ -189,12 +164,12 @@ public class Launch {
 		Modpack modpack;
 		
 		ProgressState progress = ProgressState.None;
-		frame().getOptionsGui().updateSettings();
+		Main.frame().getOptionsGui().updateSettings();
 		try {
 			progress = ProgressState.ReadingCache;
 			System.out.println("Launch status: " + progress.name());
 			metaManager = new PackMetaManager();
-			modpack = metaManager.loadModpack(settings.getModpackName());
+			modpack = metaManager.loadModpack(Main.settings().getModpackName());
 			if (modpack.getUpdateURL() != null) {
 				progress = ProgressState.CheckingForUpdates;
 				System.out.println("Launch status: " + progress.name());
@@ -236,7 +211,7 @@ public class Launch {
 			progress = ProgressState.Launching;
 			System.out.println("Launch status: " + progress.name());
 			MinecraftLauncher.launchMinecraft(modpack, RESPONSE.username, RESPONSE.sessionID);
-			frame.dispose();
+			Main.frame().dispose();
 		} catch (ExecutionException e) {
 			ErrorUtils.showException("Exception occured while " + progress.name(), e.getCause(), true);
 			e.printStackTrace();
@@ -244,7 +219,8 @@ public class Launch {
 			ErrorUtils.showException("Exception occured while " + progress.name(), e, true);
 			e.printStackTrace();
 		}
-		System.exit(0);
+		Main.frame().dispose();
+		Main.attemptExit();
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -264,33 +240,7 @@ public class Launch {
 		}
 	}
 	
-	public static void main(String[] args) throws InvalidModpackException {
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			public void uncaughtException(Thread t, Throwable e) {
-				ErrorUtils.showException(e, true);
-			}
-		});
-		try {
-			Res.init();
-			UIManager.setLookAndFeel(new NimbusLookAndFeel());
-		} catch (IOException ioe) {
-			//TODO crash message
-		} catch (UnsupportedLookAndFeelException e) { // it really doesn't matter if setting the L&F fails 
-		}
-		
-		// create the launchpad and start the program
-		try {
-			instance = new Launch();
-			PackMetaManager metaManager = new PackMetaManager();
-			if (!metaManager.hasPack("Vortexel Modpack")) {
-				JsonElement elem = JsonUtils.readJsonURL(Res.getURL("res/vortexel_pack.json"));
-				metaManager.updatePack(elem.getAsJsonObject(), "vortexel_pack.json");
-			}
-			instance.settings.setModpackName("Vortexel Modpack");
-		} catch (IOException e) {
-			ErrorUtils.showException(e, true);
-		}
-	}
+	
 	
 	protected void populateWithMCCoreFiles(PackCache packData, List<ModFile> fileList) {
 		String baseurl = "https://s3.amazonaws.com/MinecraftDownload/";
@@ -311,15 +261,5 @@ public class Launch {
 	
 	public void resetLogin() {
 		RESPONSE = null;
-	}
-	
-	public static Launch i() {
-		return instance;
-	}
-	public static MainFrame frame() {
-		return instance.frame;
-	}
-	public static Settings getSettings() {
-		return instance.settings;
 	}
 }

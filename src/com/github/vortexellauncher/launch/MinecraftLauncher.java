@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -12,17 +13,20 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
 import com.github.vortexellauncher.Launch;
+import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.OS;
 import com.github.vortexellauncher.Settings;
 import com.github.vortexellauncher.pack.ModFile;
 import com.github.vortexellauncher.pack.ModType;
 import com.github.vortexellauncher.pack.Modpack;
+import com.github.vortexellauncher.util.StreamPipe;
 
 public class MinecraftLauncher {
 	
@@ -35,12 +39,12 @@ public class MinecraftLauncher {
 		for(int i=0; i<pack.getMods().size(); i++) {
 			ModFile mf = pack.getMods().get(i); 
 			if (mf.type == ModType.Jar) {
-				cpModList.add(new File(mf.type.getDir(basepath), mf.getFilename()).getAbsolutePath());
+				cpModList.add(new File(mf.type.getDir(basepath), mf.getFilename()).getCanonicalPath());
 			}
 		}
 		for(File f : workingDir.listFiles()) {
 			if (f.getName().endsWith(".jar") && f.isFile()) {
-				cpModList.add(f.getAbsolutePath());
+				cpModList.add(f.getCanonicalPath());
 			}
 			if (f.getName().equals("minecraft.jar")) {
 				killMetaInf(f);
@@ -57,31 +61,42 @@ public class MinecraftLauncher {
 		if (OS.getOS() == OS.Windows) {
 			jvmPath += "w";
 		}
-		
+		String nclasspath = System.getProperty("java.class.path") + File.pathSeparator + cpBuilder.toString(); 
 		ArrayList<String> procArgs = new ArrayList<String>();
 		procArgs.add(jvmPath);
-		procArgs.addAll(Launch.getSettings().getVMParams());
-		procArgs.add("-Xmx" + Launch.getSettings().getRamMax() + "M");
+		List<String> moreVMParams = Main.settings().getVMParams();
+		if (moreVMParams.size() > 1) {
+			procArgs.addAll(Main.settings().getVMParams());
+		}
+		procArgs.add("-Xmx" + Main.settings().getRamMax() + "M");
 		procArgs.add("-XX:+UseConcMarkSweepGC");
 		procArgs.add("-XX:+CMSIncrementalMode");
 		procArgs.add("-XX:+AggressiveOpts");
 		procArgs.add("-XX:+CMSClassUnloadingEnabled");
 		procArgs.add("-XX:MaxPermSize=128m");
 		procArgs.add("-cp");
-		procArgs.add(System.getProperty("java.class.path") + File.pathSeparator + cpBuilder.toString());
+		procArgs.add(nclasspath);
 		procArgs.add(MinecraftLauncher.class.getName());
 		procArgs.add(basepath.getAbsolutePath());
 		procArgs.add(username);
 		procArgs.add(sessid);
-		procArgs.add(cpBuilder.toString());
 		ProcessBuilder procBuilder = new ProcessBuilder(procArgs);
 		procBuilder.environment().put("APPDATA", basepath.getParent());
-		if (Settings.isDebugMode()) {
-			procBuilder.redirectError(new File("debug.log")).redirectOutput(new File("debug.log"));
+		final boolean debugMode = Settings.isDebugMode(); 
+		if (debugMode) {
+			System.out.println(""+procArgs);
+			File redirFile = new File("debug_log.txt");
+			procBuilder.redirectError(redirFile).redirectOutput(redirFile);
+			procBuilder.redirectError(Redirect.PIPE).redirectOutput(Redirect.PIPE);
 		} else {
 			procBuilder.inheritIO();
 		}
-		return procBuilder.start();
+		Process proc = procBuilder.start();
+		if (debugMode) {
+			new StreamPipe(proc.getInputStream(), System.out).start();
+			new StreamPipe(proc.getErrorStream(), System.err).start();
+		}
+		return proc;
 	}
 	
 	public static void main(String[] args) {
@@ -91,8 +106,7 @@ public class MinecraftLauncher {
 					sessid = args[2];
 			File basepath = new File(basepathStr);
 			File workDir = new File(basepath, "bin/");
-			String[] classpath = args[3].split(File.pathSeparator);
-			
+			String[] classpath = System.getProperty("java.class.path").split(File.pathSeparator);
 			
 			URL[] classUrls = new URL[classpath.length];
 			for(int i=0; i<classpath.length; i++) {
@@ -103,7 +117,8 @@ public class MinecraftLauncher {
 			String nativesDir = new File(workDir, "natives/").getAbsolutePath();
 			System.setProperty("org.lwjgl.librarypath", nativesDir);
 			System.setProperty("net.java.games.input.librarypath", nativesDir);
-			System.setProperty("user.home", basepath.getAbsolutePath());
+			System.setProperty("user.home", basepath.getParentFile().getAbsolutePath());
+			
 			
 			URLClassLoader cl = new URLClassLoader(classUrls, MinecraftLauncher.class.getClassLoader());
 			System.out.println(Arrays.toString(cl.getURLs()));
