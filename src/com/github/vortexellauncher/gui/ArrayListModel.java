@@ -8,7 +8,7 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-public class ArrayListModel<E> extends ArrayList<E> implements ListModel<E> {
+public class ArrayListModel<E> extends ArrayList<E> implements ListModel {
 	private static final long serialVersionUID = 1L;
 	
 	private HashSet<ListDataListener> listeners = new HashSet<ListDataListener>();

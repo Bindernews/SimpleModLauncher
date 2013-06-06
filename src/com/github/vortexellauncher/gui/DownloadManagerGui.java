@@ -23,10 +23,10 @@ public class DownloadManagerGui extends JDialog {
 	private static final long serialVersionUID = 3486143573821346283L;
 	
 	private final JPanel contentPanel = new JPanel();
-	private final JList<FileDownloader> downloadList = new JList<FileDownloader>();
+	private final JList downloadList = new JList();
 
 	public DownloadManagerGui(Frame owner) {
-		super(owner, "Downloads", false);
+		super(owner, "Downloads", true);
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent e) {
@@ -46,11 +46,11 @@ public class DownloadManagerGui extends JDialog {
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 	}
 	
-	public JList<FileDownloader> getList() {
+	public JList getList() {
 		return downloadList;
 	}
 
-	public static class DownloadDrawer implements ListCellRenderer<FileDownloader> {
+	public static class DownloadDrawer implements ListCellRenderer {
 		private JPanel panel = new JPanel();
 		private JProgressBar progressBar = new JProgressBar();
 		private JLabel fileName = new JLabel();
@@ -64,9 +64,10 @@ public class DownloadManagerGui extends JDialog {
 		
 		@Override
 		public Component getListCellRendererComponent(
-				JList<? extends FileDownloader> list, FileDownloader value,
+				JList list, Object valueObj,
 				int index, boolean isSelected, boolean cellHasFocus) {
 			String fname;
+			FileDownloader value = (FileDownloader)valueObj;
 			if (value.getFile() != null) {
 				fname = value.getFile().getName();
 			}

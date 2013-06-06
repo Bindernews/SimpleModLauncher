@@ -37,9 +37,6 @@ import com.google.gson.JsonElement;
  */
 public class Launch {
 	
-	public static final VersionData VERSION = new VersionData(1,0,0,0);
-	public static final String UPDATE_URL = "https://googledrive.com/host/0Bw00_I2xsVk3WnNQaTRNby1GeHc/launcher_version.json";
-	
 	private LoginResponse RESPONSE = null;
 	private ExecutorService driverThread = Executors.newSingleThreadExecutor();
 	private ExecutorService workThread = Executors.newSingleThreadExecutor();
@@ -162,6 +159,7 @@ public class Launch {
 		GameUpdateWorker updateWorker;
 		PackMetaManager metaManager;
 		Modpack modpack;
+		Throwable error = null;
 		
 		ProgressState progress = ProgressState.None;
 		Main.frame().getOptionsGui().updateSettings();
@@ -213,11 +211,20 @@ public class Launch {
 			MinecraftLauncher.launchMinecraft(modpack, RESPONSE.username, RESPONSE.sessionID);
 			Main.frame().dispose();
 		} catch (ExecutionException e) {
-			ErrorUtils.showException("Exception occured while " + progress.name(), e.getCause(), true);
-			e.printStackTrace();
-		} catch (IOException | NullPointerException | ValidationException | InterruptedException | InvalidModpackException e) {
-			ErrorUtils.showException("Exception occured while " + progress.name(), e, true);
-			e.printStackTrace();
+			error = e.getCause();
+		} catch (IOException e) {
+			error = e;
+		} catch (NullPointerException e) {
+			error = e;
+		} catch (ValidationException e) {
+			error = e;
+		} catch (InterruptedException e) {
+			error = e;
+		} catch (InvalidModpackException e) {
+			error = e;
+		}
+		if (error != null) {
+			ErrorUtils.showException("Exception occured while " + progress.name(), error, true);
 		}
 		Main.frame().dispose();
 		Main.attemptExit();
@@ -257,6 +264,7 @@ public class Launch {
 		mcNatives.setVersion(new VersionData(0));
 		fileList.add(mcJar);
 		fileList.add(mcNatives);
+		
 	}
 	
 	public void resetLogin() {

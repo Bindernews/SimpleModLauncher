@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
@@ -61,13 +60,13 @@ public class MinecraftLauncher {
 		if (OS.getOS() == OS.Windows) {
 			jvmPath += "w";
 		}
+		List<String> moreVMParams = Main.settings().getVMParams();
 		String nclasspath = System.getProperty("java.class.path") + File.pathSeparator + cpBuilder.toString(); 
 		ArrayList<String> procArgs = new ArrayList<String>();
+
 		procArgs.add(jvmPath);
-		List<String> moreVMParams = Main.settings().getVMParams();
-		if (moreVMParams.size() > 1) {
+		if (moreVMParams.size() > 1)
 			procArgs.addAll(Main.settings().getVMParams());
-		}
 		procArgs.add("-Xmx" + Main.settings().getRamMax() + "M");
 		procArgs.add("-XX:+UseConcMarkSweepGC");
 		procArgs.add("-XX:+CMSIncrementalMode");
@@ -85,11 +84,11 @@ public class MinecraftLauncher {
 		final boolean debugMode = Settings.isDebugMode(); 
 		if (debugMode) {
 			System.out.println(""+procArgs);
-			File redirFile = new File("debug_log.txt");
-			procBuilder.redirectError(redirFile).redirectOutput(redirFile);
-			procBuilder.redirectError(Redirect.PIPE).redirectOutput(Redirect.PIPE);
+//			File redirFile = new File("debug_log.txt");
+//			procBuilder.redirectError(redirFile).redirectOutput(redirFile);
+//			procBuilder.redirectError(Redirect.PIPE).redirectOutput(Redirect.PIPE);
 		} else {
-			procBuilder.inheritIO();
+//			procBuilder.inheritIO();
 		}
 		Process proc = procBuilder.start();
 		if (debugMode) {
@@ -147,7 +146,7 @@ public class MinecraftLauncher {
 				// go to backup
 				mcClass.getMethod("main", String[].class).invoke(null, (Object)new String[]{username, sessid});
 			}
-			cl.close();
+			//cl.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

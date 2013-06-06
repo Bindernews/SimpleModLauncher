@@ -2,6 +2,7 @@ package com.github.vortexellauncher.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -48,6 +49,7 @@ public class LogView extends JFrame implements ClipboardOwner {
 		});
 		
 		textArea = new JTextArea();
+		textArea.setFont(Font.decode(Font.MONOSPACED + "-12"));
 		textArea.setRows(2);
 		textArea.setTabSize(4);
 		textArea.setBackground(Color.WHITE);

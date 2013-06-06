@@ -4,8 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
+import javax.swing.UIManager.LookAndFeelInfo;
 
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.gui.LogView;
@@ -17,6 +16,9 @@ import com.google.gson.JsonElement;
 
 public class Main {
 	
+	public static final VersionData VERSION = new VersionData(1,0,0,0);
+	public static final String UPDATE_URL = "https://googledrive.com/host/0Bw00_I2xsVk3WnNQaTRNby1GeHc/launcher_info.txt";
+	
 	private static LogView logView = null;
 	private static MainFrame frame;
 	private static Launch instance;
@@ -24,14 +26,20 @@ public class Main {
 	
 	public static void main(String[] args) {
 		try {
-			UIManager.setLookAndFeel(new NimbusLookAndFeel());
-		} catch (UnsupportedLookAndFeelException e) {
-		} catch (NoClassDefFoundError e) {
+			
+			for(LookAndFeelInfo lafi : UIManager.getInstalledLookAndFeels()) {
+				if (lafi.getName().equals("Nimbus")) {
+					UIManager.setLookAndFeel(lafi.getClassName());
+					break;
+				}
+			}
+		} catch (Exception e) {
 			try {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch (Throwable t) {
+			} catch (Exception e1) {
 			}
 		}
+		
 		
 		logView = new LogView();
 		logView.addRedirect();
@@ -48,22 +56,29 @@ public class Main {
 		
 		frame.setVisible(true);
 		
+		File osDir = new File(OS.dataDir()); 
+		if (!osDir.exists()) {
+			osDir.mkdirs();
+		}
 		try {
-			File osDir = new File(OS.dataDir()); 
-			if (!osDir.exists()) {
-				osDir.mkdirs();
-			}
-
 			PackMetaManager metaManager = new PackMetaManager();
-			if (!metaManager.hasPack("Vortexel Modpack")) {
-				JsonElement elem = JsonUtils.readJsonURL(Res.getURL("res/vortexel_pack.json"));
-				metaManager.updatePack(elem.getAsJsonObject(), "vortexel_pack.json");
+			for(int i=0; i<Defaults.MODPACKS.length; i+=2) {
+				try {
+					String packName = Defaults.MODPACKS[i];
+					if (!metaManager.hasPack(packName)) {
+						JsonElement elem = JsonUtils.readJsonURL(Res.getURL(Defaults.MODPACKS[i+1]));
+						metaManager.updatePack(elem.getAsJsonObject(), packName);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (InvalidModpackException e) {
+					e.printStackTrace();
+				}
 			}
 			settings().setModpackName("Vortexel Modpack");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InvalidModpackException e1) {
+		} catch (IOException e1) {
 			e1.printStackTrace();
+			frame.setEnabled(false);
 		}
 	}
 	

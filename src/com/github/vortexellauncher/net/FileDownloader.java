@@ -69,7 +69,7 @@ public class FileDownloader implements Callable<FileDownloader> {
 		
 		long bytesRead = 0;
 		long writePos = 0;
-		long dataLength = ncon.getContentLengthLong();
+		long dataLength = ncon.getContentLength();
 		do {
 			bytesRead = fos.getChannel().transferFrom(rbc, writePos, TRANSFER_BYTES);
 			writePos += bytesRead;
