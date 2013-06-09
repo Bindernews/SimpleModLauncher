@@ -1,6 +1,6 @@
 package com.github.vortexellauncher;
 
-public enum OS {
+public enum OSUtils {
 	
 	Windows {
 		public String getDataDir() {
@@ -24,8 +24,7 @@ public enum OS {
 			return "macosx_natives.jar";
 		}
 		public String getNativesURL () {
-			// because this is running on Java 7 the newer LWJGL mac osx libraries are needed
-			return "https://github.com/Bindernews/SimpleModLauncher/blob/master/files/macosx_natives.zip?raw=true";
+			return "https://s3.amazonaws.com/MinecraftDownload/" + getNatives();
 		}
 		public String getMCFolderName() {
 			return "minecraft";
@@ -48,7 +47,7 @@ public enum OS {
 
 	public static final String LAUNCHER_DIR = "modlauncher";
 	
-	private static OS currentOS = null;
+	private static OSUtils currentOS = null;
 	static {
 		String name = System.getProperty("os.name").toLowerCase();
 		if (name.contains("win")) currentOS = Windows;
@@ -57,7 +56,7 @@ public enum OS {
 		else throw new IllegalArgumentException("Unknown OS");
 	}
 	
-	public static OS getOS() {
+	public static OSUtils getOS() {
 		return currentOS;
 	}
 	
@@ -78,4 +77,6 @@ public enum OS {
 	public abstract String getNatives();
 	public abstract String getNativesURL();
 	public abstract String getMCFolderName();
+	
+	
 }

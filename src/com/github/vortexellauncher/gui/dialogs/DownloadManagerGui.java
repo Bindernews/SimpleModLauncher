@@ -1,4 +1,4 @@
-package com.github.vortexellauncher.gui;
+package com.github.vortexellauncher.gui.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -26,7 +26,7 @@ public class DownloadManagerGui extends JDialog {
 	private final JList downloadList = new JList();
 
 	public DownloadManagerGui(Frame owner) {
-		super(owner, "Downloads", true);
+		super(owner, "Downloads", false);
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent e) {

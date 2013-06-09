@@ -1,4 +1,4 @@
-package com.github.vortexellauncher.util;
+package com.github.vortexellauncher.io;
 
 import java.awt.Color;
 import java.io.IOException;

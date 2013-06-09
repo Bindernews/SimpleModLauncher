@@ -1,4 +1,4 @@
-package com.github.vortexellauncher.gui;
+package com.github.vortexellauncher.gui.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;

@@ -1,4 +1,4 @@
-package com.github.vortexellauncher.gui;
+package com.github.vortexellauncher.util;
 
 import java.awt.Color;
 import java.awt.Font;

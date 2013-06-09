@@ -3,8 +3,13 @@ package com.github.vortexellauncher.pack;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
-import com.github.vortexellauncher.OS;
+import com.github.vortexellauncher.OSUtils;
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.util.JsonUtils;
 import com.google.gson.Gson;
@@ -12,11 +17,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class PackMetaManager {
-
-	private File metaFile = new File(OS.dataDir(), "ModpackCache.txt");
+	
+	public static final Comparator<Modpack> modpackNameComparator = new Comparator<Modpack>() {
+		public int compare(Modpack a, Modpack b) {
+			return a.name.compareTo(b.name);
+		}
+	};
+	
+	private File metaFile = new File(OSUtils.dataDir(), "ModpackCache.txt");
 	private JsonObject metadata;
 	private JsonObject cacheJson;
 	private Gson gson = new Gson();
+	private Set<Modpack> modpackList = new TreeSet<Modpack>(modpackNameComparator);
 	
 	public PackMetaManager() throws IOException {
 		try {
@@ -26,14 +38,21 @@ public class PackMetaManager {
 			cacheJson = new JsonObject();
 			metadata = new JsonObject();
 			cacheJson.add("packs", metadata);
-			saveJson();
 		}
+		for(Entry<String, JsonElement> ent : metadata.entrySet()) {
+			try {
+				modpackList.add(loadModpack(ent.getKey()));
+			} catch (InvalidModpackException e) {
+				metadata.remove(ent.getKey());
+			}
+		}
+		saveJson();
 	}
 	
 	public File getFolder(String pack) {
 		File fold = new File(asString(getPackElem(pack, "folder")));
 		if (!fold.isAbsolute()) {
-			fold = new File(OS.dataDir(), fold.getPath());
+			fold = new File(OSUtils.dataDir(), fold.getPath());
 		}
 		return fold;
 	}
@@ -49,11 +68,15 @@ public class PackMetaManager {
 		return modpack;
 	}
 	
+	public Collection<Modpack> getModpackList() {
+		return modpackList;
+	}
+	
 	public boolean hasPack(String pack) {
 		if (!metadata.has(pack)) {
 			return false;
 		}
-		File packFile = new File(getFolder(pack).getParentFile(), "modpack.json");
+		File packFile = getModpackJsonFile(pack);
 		if (!packFile.exists()) {
 			return false;
 		}
@@ -74,7 +97,9 @@ public class PackMetaManager {
 		fwriter.write(JsonUtils.getPrettyGson().toJson(jobj));
 		fwriter.close();
 		
+		modpackList.add(modpack);
 		saveJson();
+		
 		return modpack.name;
 	}
 	
@@ -93,4 +118,5 @@ public class PackMetaManager {
 		}
 		return metadata.getAsJsonObject(pack).get(member);
 	}
+
 }

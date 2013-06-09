@@ -4,14 +4,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-public class ArrayListModel<E> extends ArrayList<E> implements ListModel {
+public class ArrayListModel<E> extends ArrayList<E> implements ListModel, ComboBoxModel {
 	private static final long serialVersionUID = 1L;
 	
 	private HashSet<ListDataListener> listeners = new HashSet<ListDataListener>();
+	private Object selectedObject = null;
 	
 	public ArrayListModel() {
 		super();	
@@ -88,6 +90,16 @@ public class ArrayListModel<E> extends ArrayList<E> implements ListModel {
 	@Override
 	public void removeListDataListener(ListDataListener l) {
 		listeners.remove(l);
+	}
+	
+	@Override
+	public Object getSelectedItem() {
+		return selectedObject;
+	}
+
+	@Override
+	public void setSelectedItem(Object anItem) {
+		selectedObject = anItem;
 	}
 	
 	private void sendEventRemoved(int indexFirst, int indexLast) {

@@ -1,4 +1,4 @@
-package com.github.vortexellauncher.util;
+package com.github.vortexellauncher.io;
 
 import java.io.IOException;
 import java.io.InputStream;

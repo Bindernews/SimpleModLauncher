@@ -1,4 +1,4 @@
-package com.github.vortexellauncher.gui;
+package com.github.vortexellauncher.gui.dialogs;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -15,12 +15,14 @@ import javax.swing.text.NumberFormatter;
 
 import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.Settings;
+import javax.swing.JCheckBox;
 
 public class OptionsGui extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private JTextField vmargsField;
 	private JFormattedTextField ramMaxField;
 	private JTextField socksHost;
+	private JCheckBox chkDoNotValidate;
 
 	public OptionsGui(Frame owner) {
 		super(owner, "Options", true);
@@ -28,9 +30,9 @@ public class OptionsGui extends JDialog {
 		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		getContentPane().setLayout(gridBagLayout);
 		
 		JLabel lblJvmArgs = new JLabel("JVM Args");
@@ -42,6 +44,7 @@ public class OptionsGui extends JDialog {
 		getContentPane().add(lblJvmArgs, gbc_lblJvmArgs);
 		
 		vmargsField = new JTextField();
+		lblJvmArgs.setLabelFor(vmargsField);
 		GridBagConstraints gbc_vmargsField = new GridBagConstraints();
 		gbc_vmargsField.insets = new Insets(0, 0, 5, 0);
 		gbc_vmargsField.anchor = GridBagConstraints.NORTH;
@@ -60,6 +63,7 @@ public class OptionsGui extends JDialog {
 		getContentPane().add(lblMaxRam, gbc_lblMaxRam);
 		
 		ramMaxField = new JFormattedTextField(new NumberFormatter());
+		lblMaxRam.setLabelFor(ramMaxField);
 		ramMaxField.setText("768");
 		GridBagConstraints gbc_ramMaxField = new GridBagConstraints();
 		gbc_ramMaxField.insets = new Insets(0, 0, 5, 0);
@@ -77,6 +81,7 @@ public class OptionsGui extends JDialog {
 		getContentPane().add(lblSocksHost, gbc_lblSocksHost);
 		
 		socksHost = new JTextField();
+		lblSocksHost.setLabelFor(socksHost);
 		GridBagConstraints gbc_socksHost = new GridBagConstraints();
 		gbc_socksHost.insets = new Insets(0, 0, 5, 0);
 		gbc_socksHost.fill = GridBagConstraints.HORIZONTAL;
@@ -88,7 +93,7 @@ public class OptionsGui extends JDialog {
 		JLabel lblSocksPort = new JLabel("Socks Port");
 		GridBagConstraints gbc_lblSocksPort = new GridBagConstraints();
 		gbc_lblSocksPort.anchor = GridBagConstraints.EAST;
-		gbc_lblSocksPort.insets = new Insets(0, 0, 0, 5);
+		gbc_lblSocksPort.insets = new Insets(0, 0, 5, 5);
 		gbc_lblSocksPort.gridx = 0;
 		gbc_lblSocksPort.gridy = 3;
 		getContentPane().add(lblSocksPort, gbc_lblSocksPort);
@@ -96,11 +101,21 @@ public class OptionsGui extends JDialog {
 		NumberFormat nf = NumberFormat.getIntegerInstance();
 		nf.setGroupingUsed(false);
 		JFormattedTextField socksPort = new JFormattedTextField(new NumberFormatter(nf));
+		lblSocksPort.setLabelFor(socksPort);
 		GridBagConstraints gbc_socksPort = new GridBagConstraints();
+		gbc_socksPort.insets = new Insets(0, 0, 5, 0);
 		gbc_socksPort.fill = GridBagConstraints.HORIZONTAL;
 		gbc_socksPort.gridx = 1;
 		gbc_socksPort.gridy = 3;
 		getContentPane().add(socksPort, gbc_socksPort);
+		
+		chkDoNotValidate = new JCheckBox("Do not validate");
+		GridBagConstraints gbc_chkDoNotValidate = new GridBagConstraints();
+		gbc_chkDoNotValidate.gridwidth = 2;
+		gbc_chkDoNotValidate.insets = new Insets(0, 0, 0, 5);
+		gbc_chkDoNotValidate.gridx = 0;
+		gbc_chkDoNotValidate.gridy = 4;
+		getContentPane().add(chkDoNotValidate, gbc_chkDoNotValidate);
 		
 		pack();
 	}
@@ -125,5 +140,9 @@ public class OptionsGui extends JDialog {
 		Settings sets = Main.settings();
 		sets.setRamMax(getRamMax());
 		sets.setVMParams(Arrays.asList(getVmargs().split(" ")));
+		sets.setShouldValidate(!chkDoNotValidate.isSelected());
+	}
+	public JCheckBox getChkDoNotValidate() {
+		return chkDoNotValidate;
 	}
 }

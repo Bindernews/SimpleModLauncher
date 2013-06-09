@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import com.github.vortexellauncher.OS;
+import com.github.vortexellauncher.OSUtils;
 import com.github.vortexellauncher.VersionData;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -20,7 +20,7 @@ public class PackCache {
 	
 	public PackCache(Modpack pack) throws IOException {
 		modpack = pack;
-		cacheFile = new File(OS.dataDir(), pack.folder + File.separator + "cache.txt");
+		cacheFile = new File(OSUtils.dataDir(), pack.folder + File.separator + "cache.txt");
 		if (cacheFile.exists()) {
 			FileReader fr = new FileReader(cacheFile);
 			JsonParser parser = new JsonParser();

@@ -23,6 +23,7 @@ public class Main {
 	private static MainFrame frame;
 	private static Launch instance;
 	private static Settings settings;
+	private static PackMetaManager metaManager;
 	
 	public static void main(String[] args) {
 		try {
@@ -48,6 +49,8 @@ public class Main {
 			Res.init();
 		} catch (IOException e) {
 			//TODO crash message
+			e.printStackTrace();
+			logView.setVisible(true);
 		}
 		
 		frame = new MainFrame();
@@ -56,12 +59,12 @@ public class Main {
 		
 		frame.setVisible(true);
 		
-		File osDir = new File(OS.dataDir()); 
-		if (!osDir.exists()) {
-			osDir.mkdirs();
-		}
 		try {
-			PackMetaManager metaManager = new PackMetaManager();
+			File osDir = new File(OSUtils.dataDir()); 
+			if (!osDir.exists()) {
+				osDir.mkdirs();
+			}
+			metaManager = new PackMetaManager();
 			for(int i=0; i<Defaults.MODPACKS.length; i+=2) {
 				try {
 					String packName = Defaults.MODPACKS[i];
@@ -76,9 +79,11 @@ public class Main {
 				}
 			}
 			settings().setModpackName("Vortexel Modpack");
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			frame.setEnabled(false);
+			frame.updateModpackList();
+			frame.getPackSelector().setSelectedIndex(0);
+		} catch (IOException e) {
+			e.printStackTrace();
+			frame.dispose();
 		}
 	}
 	
@@ -103,5 +108,8 @@ public class Main {
 	}
 	public static LogView logView() {
 		return logView;
+	}
+	public static PackMetaManager metaManager() {
+		return metaManager;
 	}
 }

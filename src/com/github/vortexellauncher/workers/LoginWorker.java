@@ -6,7 +6,7 @@ import java.net.URLEncoder;
 
 import javax.swing.SwingWorker;
 
-import com.github.vortexellauncher.net.NetUtils;
+import com.github.vortexellauncher.util.NetUtils;
 
 public class LoginWorker extends SwingWorker<String, Void> {
 

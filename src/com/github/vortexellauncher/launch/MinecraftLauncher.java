@@ -20,12 +20,12 @@ import java.util.jar.JarOutputStream;
 
 import com.github.vortexellauncher.Launch;
 import com.github.vortexellauncher.Main;
-import com.github.vortexellauncher.OS;
+import com.github.vortexellauncher.OSUtils;
 import com.github.vortexellauncher.Settings;
+import com.github.vortexellauncher.io.StreamPipe;
 import com.github.vortexellauncher.pack.ModFile;
 import com.github.vortexellauncher.pack.ModType;
 import com.github.vortexellauncher.pack.Modpack;
-import com.github.vortexellauncher.util.StreamPipe;
 
 public class MinecraftLauncher {
 	
@@ -57,7 +57,7 @@ public class MinecraftLauncher {
 		}
 		
 		String jvmPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-		if (OS.getOS() == OS.Windows) {
+		if (OSUtils.getOS() == OSUtils.Windows) {
 			jvmPath += "w";
 		}
 		List<String> moreVMParams = Main.settings().getVMParams();

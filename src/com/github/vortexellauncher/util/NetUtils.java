@@ -1,4 +1,4 @@
-package com.github.vortexellauncher.net;
+package com.github.vortexellauncher.util;
 
 import java.io.IOException;
 import java.net.URLConnection;

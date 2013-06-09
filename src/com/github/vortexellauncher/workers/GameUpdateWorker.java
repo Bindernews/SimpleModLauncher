@@ -17,7 +17,7 @@ import javax.swing.SwingWorker;
 import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.gui.ArrayListModel;
-import com.github.vortexellauncher.gui.DownloadManagerGui;
+import com.github.vortexellauncher.gui.dialogs.DownloadManagerGui;
 import com.github.vortexellauncher.launch.MinecraftLauncher;
 import com.github.vortexellauncher.net.FileDownloader;
 import com.github.vortexellauncher.net.NetResolver;
@@ -112,14 +112,14 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 						packData.updateMod(data.modfile);
 					}
 				} catch (ExecutionException e) {
-					ErrorUtils.showException(e, false);
+					ErrorUtils.printException(e, false);
 				}
 			}
 			packData.saveToFile();
 			return true;
 		}
 		catch (IOException ioe) {
-			ErrorUtils.showException(ioe, false);
+			ErrorUtils.printException(ioe, false);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

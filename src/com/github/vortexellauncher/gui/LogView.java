@@ -21,9 +21,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import com.github.vortexellauncher.Main;
+import com.github.vortexellauncher.io.MultiOutputStream;
+import com.github.vortexellauncher.io.TextAreaOutputStream;
 import com.github.vortexellauncher.util.DebugUtils;
-import com.github.vortexellauncher.util.MultiOutputStream;
-import com.github.vortexellauncher.util.TextAreaOutputStream;
 
 public class LogView extends JFrame implements ClipboardOwner {
 	private static final long serialVersionUID = 5985510213911888380L;

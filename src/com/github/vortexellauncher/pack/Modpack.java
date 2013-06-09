@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.github.vortexellauncher.MCVersion;
-import com.github.vortexellauncher.OS;
+import com.github.vortexellauncher.OSUtils;
 import com.github.vortexellauncher.VersionData;
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.util.JsonUtils;
@@ -95,7 +95,7 @@ public class Modpack {
 	}
 	
 	public File getFolder() {
-		return new File(OS.dataDir(), folder + File.separator + OS.mcFolderName());
+		return new File(OSUtils.dataDir(), folder + File.separator + OSUtils.mcFolderName());
 	}
 	
 	public String getUpdateURL() {

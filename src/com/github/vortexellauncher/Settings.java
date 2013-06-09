@@ -14,6 +14,7 @@ public class Settings {
 	private Modpack modpack;
 	private boolean redirectOutputToFile = false;
 	private String modpackName;
+	private boolean shouldValidate = true;
 	
 	private static boolean debugMode = false;
 	
@@ -25,31 +26,24 @@ public class Settings {
 		vmargs.clear();
 		vmargs.addAll(params);
 	}
-	
 	public List<String> getVMParams() {
 		return vmargs;
 	}
-	
 	public void setProxy(Proxy aproxy) {
 		proxy = aproxy;
 	}
-	
 	public Proxy getProxy() {
 		return proxy;
 	}
-	
 	public Modpack getModpack() {
 		return modpack;
 	}
-	
 	public void setModpack(Modpack mp) {
 		modpack = mp;
 	}
-	
 	public String getModpackName() {
 		return modpackName;
 	}
-	
 	public void setModpackName(String nname) {
 		modpackName = nname;
 	}
@@ -71,7 +65,12 @@ public class Settings {
 	public boolean getRedirectOutput() {
 		return redirectOutputToFile;
 	}
-	
+	public boolean shouldValidate() {
+		return shouldValidate;
+	}
+	public void setShouldValidate(boolean v) {
+		shouldValidate = v;
+	}
 	public static boolean isDebugMode() {
 		return debugMode;
 	}
