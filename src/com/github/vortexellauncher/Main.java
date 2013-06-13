@@ -2,7 +2,11 @@ package com.github.vortexellauncher;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -12,6 +16,7 @@ import com.github.vortexellauncher.gui.MainFrame;
 import com.github.vortexellauncher.gui.Res;
 import com.github.vortexellauncher.pack.PackMetaManager;
 import com.github.vortexellauncher.util.JsonUtils;
+import com.github.vortexellauncher.util.Utils;
 import com.google.gson.JsonElement;
 
 public class Main {
@@ -24,40 +29,36 @@ public class Main {
 	private static Launch instance;
 	private static Settings settings;
 	private static PackMetaManager metaManager;
+	private static Logger logger;
+	
+	public static File lastLoginFile;
 	
 	public static void main(String[] args) {
-		try {
-			
-			for(LookAndFeelInfo lafi : UIManager.getInstalledLookAndFeels()) {
-				if (lafi.getName().equals("Nimbus")) {
-					UIManager.setLookAndFeel(lafi.getClassName());
+		System.out.println(Arrays.asList(args));
+		if (OSUtils.getOS() == OSUtils.Mac) {
+			boolean foundNoJVM = false;
+			for (String s : args) {
+				if (s.equals("-nojvm")) {
+					foundNoJVM = true;
 					break;
 				}
 			}
-		} catch (Exception e) {
-			try {
-				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch (Exception e1) {
+			if (foundNoJVM) {
+//				Runtime.getRuntime().exec(new String[]{System.getProperty())
 			}
 		}
 		
-		
-		logView = new LogView();
-		logView.addRedirect();
-		
-		try {
-			Res.init();
-		} catch (IOException e) {
-			//TODO crash message
-			e.printStackTrace();
-			logView.setVisible(true);
-		}
-		
-		frame = new MainFrame();
-		settings = new Settings();
+		lastLoginFile = new File(OSUtils.dataDir(), "loginlast");
+		logger = Logger.getLogger("Vortexel Launcher");
+		logger.setLevel(Level.INFO);
 		instance = new Launch();
+		settings = new Settings();
 		
-		frame.setVisible(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				loadGui();
+			}
+		});
 		
 		try {
 			File osDir = new File(OSUtils.dataDir()); 
@@ -79,11 +80,53 @@ public class Main {
 				}
 			}
 			settings().setModpackName("Vortexel Modpack");
-			frame.updateModpackList();
-			frame.getPackSelector().setSelectedIndex(0);
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					frame.getMainPanel().updateModpackList();
+					frame.getMainPanel().getPackSelector().setSelectedIndex(0);
+				}
+			});
 		} catch (IOException e) {
 			e.printStackTrace();
 			frame.dispose();
+		}
+	}
+	
+	private static void loadGui() {
+		try {
+			for(LookAndFeelInfo lafi : UIManager.getInstalledLookAndFeels()) {
+				if (lafi.getName().equals("Nimbus")) {
+					UIManager.setLookAndFeel(lafi.getClassName());
+					break;
+				}
+			}
+		} catch (Exception e) {
+			try {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch (Exception e1) {
+			}
+		}
+		logView = new LogView();
+		logView.addRedirect();
+		try {
+			Res.init();
+		} catch (IOException e) {
+			//TODO crash message
+			e.printStackTrace();
+			logView.setVisible(true);
+		}
+		frame = new MainFrame();
+		frame.setVisible(true);
+		try {
+			
+			String lastLoginStr = Utils.simpleCryptIn(lastLoginFile);
+			if (lastLoginStr != null) {
+				UserPass up = new UserPass(lastLoginStr);
+				Main.frame().getMainPanel().setUserPass(up.getUsername(), up.getPassword());
+				Main.frame().getMainPanel().getChkRemember().setSelected(true);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -111,5 +154,8 @@ public class Main {
 	}
 	public static PackMetaManager metaManager() {
 		return metaManager;
+	}
+	public static Logger log() {
+		return logger;
 	}
 }

@@ -1,6 +1,5 @@
 package com.github.vortexellauncher;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -40,24 +39,15 @@ public class Launch {
 	private ExecutorService driverThread = Executors.newSingleThreadExecutor();
 	private ExecutorService workThread = Executors.newSingleThreadExecutor();
 	
-	private static final File lastLoginFile = new File(OSUtils.dataDir(), "loginlast");
+	
 	
 	public Launch() {
-		try {
-			String lastLoginStr = Utils.simpleCryptIn(lastLoginFile);
-			if (lastLoginStr != null) {
-				UserPass up = new UserPass(lastLoginStr);
-				Main.frame().setUserPass(up);
-				Main.frame().getChkRemember().setSelected(true);
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
+		
 	}
 	
 	public void attemptLogin(final String username, final String password, final boolean save) {
 		if (username.length() == 0) {
-			Main.frame().setLoginStatus("No username");
+			Main.frame().getMainPanel().setLoginStatus("No username");
 			return;
 		}
 		Main.frame().setEnabled(false);
@@ -85,11 +75,11 @@ public class Launch {
 				}
 				try {
 					RESPONSE = new LoginResponse(responseStr);
-					Main.frame().setLoginStatus("Login succeded");
+					Main.frame().getMainPanel().setLoginStatus("Login succeded");
 					if (save) {
 						try {
 							UserPass up = new UserPass(username, password);
-							Utils.simpleCryptOut(up.combine(), lastLoginFile);
+							Utils.simpleCryptOut(up.combine(), Main.lastLoginFile);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -101,16 +91,16 @@ public class Launch {
 					}
 					else {
 						if (responseStr.equalsIgnoreCase("bad login")) {
-							Main.frame().setLoginStatus("Bad login");
+							Main.frame().getMainPanel().setLoginStatus("Bad login");
 						}
 						else if (responseStr.equalsIgnoreCase("old version")) {
-							Main.frame().setLoginStatus("Outdated launcher");
+							Main.frame().getMainPanel().setLoginStatus("Outdated launcher");
 						}
 						else if (responseStr.startsWith("Account migrated, use e-mail")) {
-							Main.frame().setLoginStatus("Login using your email account");
+							Main.frame().getMainPanel().setLoginStatus("Login using your email account");
 						}
 						else {
-							Main.frame().setLoginStatus(responseStr);
+							Main.frame().getMainPanel().setLoginStatus(responseStr);
 							new OfflineDialog(Main.frame()).setVisible(true);
 						}
 					}
@@ -125,7 +115,7 @@ public class Launch {
 	}
 	
 	public void playOffline() {
-		String user = Main.frame().getUsername();
+		String user = Main.frame().getMainPanel().getUsername();
 		RESPONSE = new LoginResponse("0: :" + user + ": ");
 		runLaunchGame();
 	}

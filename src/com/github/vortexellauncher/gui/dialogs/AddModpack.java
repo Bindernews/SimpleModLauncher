@@ -235,7 +235,7 @@ public class AddModpack extends JDialog {
 				break;
 			}
 			Main.metaManager().updatePack(elem.getAsJsonObject(), fname);
-			Main.frame().updateModpackList();
+			Main.frame().getMainPanel().updateModpackList();
 		} catch (IOException ex) {
 			ErrorUtils.showErrorGui(self, "I/O Error:", ex.getMessage());
 		} catch (InvalidModpackException ex) {

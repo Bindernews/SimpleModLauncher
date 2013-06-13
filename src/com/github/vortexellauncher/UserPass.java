@@ -1,5 +1,12 @@
 package com.github.vortexellauncher;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+
+import com.github.vortexellauncher.util.Utils;
+
 public class UserPass {
 
 	private static final String lastLoginSepStr = ":`:!@:`:";
@@ -40,5 +47,19 @@ public class UserPass {
 	
 	public String combine() {
 		return username + lastLoginSepStr + password;
+	}
+	
+	public static UserPass[] loadFromFile(File f) throws IOException {
+		String str = Utils.simpleCryptIn(f);
+		StringTokenizer st = new StringTokenizer(str, "\n\r");
+		ArrayList<UserPass> ups = new ArrayList<UserPass>();
+		while(st.hasMoreTokens()) {
+			ups.add(new UserPass(st.nextToken()));
+		}
+		return ups.toArray(new UserPass[ups.size()]);
+	}
+	
+	public static void saveToFile(File f, UserPass[] ups) {
+		
 	}
 }

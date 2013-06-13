@@ -3,7 +3,7 @@ package com.github.vortexellauncher.pack;
 import java.io.File;
 
 public enum ModType {
-	Jar("jarmods"){
+	Jar("../jarmods"){
 	},
 	Core("coremods") {
 	},

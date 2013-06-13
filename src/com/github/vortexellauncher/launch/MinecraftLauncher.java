@@ -18,7 +18,6 @@ import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
-import com.github.vortexellauncher.Launch;
 import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.OSUtils;
 import com.github.vortexellauncher.Settings;
@@ -29,16 +28,25 @@ import com.github.vortexellauncher.pack.Modpack;
 
 public class MinecraftLauncher {
 	
+	private static boolean forceForgeFirst = false;
+	
 	public static Process launchMinecraft(Modpack pack, String username, String sessid) throws IOException {
 		
-		File basepath = pack.getFolder();
+		File basepath = pack.getFolder().getAbsoluteFile();
 		File workingDir = new File(basepath, "bin/");
+		
+		System.out.println("basepath="+basepath.getPath()+"\n^^^");
 		
 		ArrayList<String> cpModList = new ArrayList<String>();
 		for(int i=0; i<pack.getMods().size(); i++) {
 			ModFile mf = pack.getMods().get(i); 
 			if (mf.type == ModType.Jar) {
-				cpModList.add(new File(mf.type.getDir(basepath), mf.getFilename()).getCanonicalPath());
+				String fpath = new File(mf.type.getDir(basepath), mf.getFilename()).getCanonicalPath();
+				if (mf.name.contains("forge") && mf.name.contains("minecraft") && forceForgeFirst) {
+					cpModList.add(0, fpath);
+				} else {
+					cpModList.add(fpath);
+				}
 			}
 		}
 		for(File f : workingDir.listFiles()) {
@@ -61,7 +69,7 @@ public class MinecraftLauncher {
 			jvmPath += "w";
 		}
 		List<String> moreVMParams = Main.settings().getVMParams();
-		String nclasspath = System.getProperty("java.class.path") + File.pathSeparator + cpBuilder.toString(); 
+		String nclasspath = cpBuilder.toString() + File.pathSeparator + getCurrentJar(); 
 		ArrayList<String> procArgs = new ArrayList<String>();
 
 		procArgs.add(jvmPath);
@@ -106,6 +114,7 @@ public class MinecraftLauncher {
 			File basepath = new File(basepathStr);
 			File workDir = new File(basepath, "bin/");
 			String[] classpath = System.getProperty("java.class.path").split(File.pathSeparator);
+			System.out.println("basepath="+basepath.getPath());
 			
 			URL[] classUrls = new URL[classpath.length];
 			for(int i=0; i<classpath.length; i++) {
@@ -155,7 +164,7 @@ public class MinecraftLauncher {
 	}
 	
 	public static String getCurrentJar() {
-		String val = new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
+		String val = new File(MinecraftLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
 		System.out.println(val);
 		return val;
 	}
