@@ -2,6 +2,7 @@ package com.github.vortexellauncher.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -16,24 +17,25 @@ import java.io.PrintStream;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 
 import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.io.MultiOutputStream;
-import com.github.vortexellauncher.io.TextAreaOutputStream;
+import com.github.vortexellauncher.io.TextPaneOutputStream;
 import com.github.vortexellauncher.util.DebugUtils;
 
 public class LogView extends JFrame implements ClipboardOwner {
 	private static final long serialVersionUID = 5985510213911888380L;
 
-	private static PrintStream normalOut = System.out,
-			normalErr = System.err;
-	private PrintStream outPrinter,
-						errPrinter;
-	
-	private JTextArea textArea;
+	private static PrintStream normalOut = System.out, normalErr = System.err;
+	private PrintStream outPrinter, errPrinter;
+
+	private JTextPane text;
 	private LogView self;
 
 	public LogView() {
@@ -47,50 +49,62 @@ public class LogView extends JFrame implements ClipboardOwner {
 				Main.attemptExit();
 			}
 		});
+
+		text = new JTextPane();
+		text.setFont(Font.decode(Font.MONOSPACED + "-12"));
+		text.setBackground(Color.WHITE);
+		text.setEditable(false);
 		
-		textArea = new JTextArea();
-		textArea.setFont(Font.decode(Font.MONOSPACED + "-12"));
-		textArea.setRows(2);
-		textArea.setTabSize(4);
-		textArea.setBackground(Color.WHITE);
-		textArea.setEditable(false);
-		getContentPane().add(new JScrollPane(textArea), BorderLayout.CENTER);
-		
-		JPanel panel = new JPanel();
-		getContentPane().add(panel, BorderLayout.SOUTH);
-		
+		JPanel p = new JPanel(new BorderLayout());
+		p.add(text, BorderLayout.CENTER);
+		JScrollPane jsp = new JScrollPane(p);
+		jsp.setPreferredSize(new Dimension(6, 80));
+		getContentPane().add(jsp, BorderLayout.CENTER);
+
+		JPanel buttonPanel = new JPanel();
+		getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+
 		JButton btnCopyToClipboard = new JButton("Copy to Clipboard");
 		btnCopyToClipboard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setClipboard(textArea.getText());
+				setClipboard(text.getText());
 			}
 		});
-		panel.setLayout(new BorderLayout(0, 0));
-		panel.add(btnCopyToClipboard, BorderLayout.WEST);
+		buttonPanel.setLayout(new BorderLayout(0, 0));
+		buttonPanel.add(btnCopyToClipboard, BorderLayout.CENTER);
 		
-		JButton btnPrintSystemInfo = new JButton("Print System Info");
-		btnPrintSystemInfo.addActionListener(new ActionListener() {
+		JMenuBar menuBar = new JMenuBar();
+		getContentPane().add(menuBar, BorderLayout.NORTH);
+		
+		JMenu mnTools = new JMenu("Tools");
+		menuBar.add(mnTools);
+		
+		JMenuItem mntmPrintSystemInfo = new JMenuItem("Print System Info");
+		mntmPrintSystemInfo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				DebugUtils.printJavaProperties(System.out);
+				System.getProperties().list(System.out);
+				System.out.println();
 				DebugUtils.printEnvironment(System.out);
 			}
 		});
-		panel.add(btnPrintSystemInfo, BorderLayout.EAST);
-		
+		mnTools.add(mntmPrintSystemInfo);
+
 		pack();
 		setupStreams();
 	}
-	
+
 	private void setupStreams() {
-		outPrinter = new PrintStream(new MultiOutputStream(new TextAreaOutputStream(textArea, Color.BLACK), normalOut));
-		errPrinter = new PrintStream(new MultiOutputStream(new TextAreaOutputStream(textArea, Color.RED), normalErr));
+		outPrinter = new PrintStream(new MultiOutputStream(
+				new TextPaneOutputStream(text, Color.BLACK), normalOut));
+		errPrinter = new PrintStream(new MultiOutputStream(
+				new TextPaneOutputStream(text, Color.RED), normalErr));
 	}
 
 	public void addRedirect() {
 		System.setOut(outPrinter);
 		System.setErr(errPrinter);
 	}
-	
+
 	public void setClipboard(String text) {
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		StringSelection ss = new StringSelection(text);
@@ -98,7 +112,7 @@ public class LogView extends JFrame implements ClipboardOwner {
 	}
 
 	@Override
-	public void lostOwnership(Clipboard clipboard, Transferable contents) {		
+	public void lostOwnership(Clipboard clipboard, Transferable contents) {
 	}
 
 }

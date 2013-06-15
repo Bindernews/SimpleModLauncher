@@ -1,4 +1,4 @@
-package com.github.vortexellauncher;
+package com.github.vortexellauncher.launch;
 
 public class LoginResponse {
 	public final String latestVersion, downloadTicket, username, sessionID;

@@ -2,6 +2,7 @@ package com.github.vortexellauncher;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,6 +15,7 @@ import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.gui.LogView;
 import com.github.vortexellauncher.gui.MainFrame;
 import com.github.vortexellauncher.gui.Res;
+import com.github.vortexellauncher.launch.Launch;
 import com.github.vortexellauncher.pack.PackMetaManager;
 import com.github.vortexellauncher.util.JsonUtils;
 import com.github.vortexellauncher.util.Utils;
@@ -23,6 +25,7 @@ public class Main {
 	
 	public static final VersionData VERSION = new VersionData(1,0,0,0);
 	public static final String UPDATE_URL = "https://googledrive.com/host/0Bw00_I2xsVk3WnNQaTRNby1GeHc/launcher_info.txt";
+	public static final String LOGGER_NAME = "Vortexel Launcher";
 	
 	private static LogView logView = null;
 	private static MainFrame frame;
@@ -43,16 +46,18 @@ public class Main {
 					break;
 				}
 			}
-			if (foundNoJVM) {
+			if (!foundNoJVM) {
 //				Runtime.getRuntime().exec(new String[]{System.getProperty())
 			}
 		}
 		
+		logger = Logger.getLogger(LOGGER_NAME);
+//		logger.setLevel(Level.INFO);
+		logger.setLevel(Level.FINE);
+		
 		lastLoginFile = new File(OSUtils.dataDir(), "loginlast");
-		logger = Logger.getLogger("Vortexel Launcher");
-		logger.setLevel(Level.INFO);
 		instance = new Launch();
-		settings = new Settings();
+		settings = new Settings("default");
 		
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -60,17 +65,23 @@ public class Main {
 			}
 		});
 		
+		
+		try {
+			settings.doLoad();
+		} catch (Exception e) {
+		}
 		try {
 			File osDir = new File(OSUtils.dataDir()); 
 			if (!osDir.exists()) {
 				osDir.mkdirs();
 			}
+			
 			metaManager = new PackMetaManager();
 			for(int i=0; i<Defaults.MODPACKS.length; i+=2) {
 				try {
 					String packName = Defaults.MODPACKS[i];
 					if (!metaManager.hasPack(packName)) {
-						JsonElement elem = JsonUtils.readJsonURL(Res.getURL(Defaults.MODPACKS[i+1]));
+						JsonElement elem = JsonUtils.readJsonURL(new URL(Defaults.MODPACKS[i+1]));
 						metaManager.updatePack(elem.getAsJsonObject(), packName);
 					}
 				} catch (IOException e) {
@@ -79,11 +90,13 @@ public class Main {
 					e.printStackTrace();
 				}
 			}
-			settings().setModpackName("Vortexel Modpack");
+			if (settings().getModpackName().equals("")) {
+				settings().setModpackName("Vortexel Modpack");
+			}
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					frame.getMainPanel().updateModpackList();
-					frame.getMainPanel().getPackSelector().setSelectedIndex(0);
+					frame.getMainPanel().updateModpackName();
 				}
 			});
 		} catch (IOException e) {
@@ -130,9 +143,20 @@ public class Main {
 		}
 	}
 	
+	/**
+	 * Exits the program only if all JFrames and JDialogs have been closed.
+	 * @return false if the program didn't close. It will exit otherwise so the return value is pointless but it makes calling code more clear. 
+	 */
 	public static boolean attemptExit() {
+		System.err.println("Attempting exit");
 		if (frame().isDisplayable() || logView.isVisible()) {
 			return false;
+		}
+		frame().getOptionsGui().updateSettings();
+		try {
+			settings().doSave();
+		} catch (IOException e) {
+			log().log(Level.SEVERE, "", e);
 		}
 		frame().dispose();
 		logView.dispose();

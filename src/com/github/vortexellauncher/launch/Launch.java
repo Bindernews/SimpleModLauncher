@@ -1,4 +1,4 @@
-package com.github.vortexellauncher;
+package com.github.vortexellauncher.launch;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -10,11 +10,16 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 
+import com.github.vortexellauncher.Log;
+import com.github.vortexellauncher.Main;
+import com.github.vortexellauncher.OSUtils;
+import com.github.vortexellauncher.UserPass;
+import com.github.vortexellauncher.VersionData;
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.exceptions.ValidationException;
 import com.github.vortexellauncher.gui.dialogs.OfflineDialog;
-import com.github.vortexellauncher.launch.MinecraftLauncher;
 import com.github.vortexellauncher.pack.FileStatus;
 import com.github.vortexellauncher.pack.ModFile;
 import com.github.vortexellauncher.pack.ModType;
@@ -37,9 +42,20 @@ public class Launch {
 	
 	private LoginResponse RESPONSE = null;
 	private ExecutorService driverThread = Executors.newSingleThreadExecutor();
-	private ExecutorService workThread = Executors.newSingleThreadExecutor();
 	
-	
+	public static enum ProgressState {
+		None,
+		CheckingForUpdates,
+		ReadingCache,
+		Validating,
+		Updating,
+		Revalidating,
+		Launching;
+		
+		public void log(Level level) {
+			Log.log(level, "Launch status: " + name());
+		}
+	}
 	
 	public Launch() {
 		
@@ -53,13 +69,13 @@ public class Launch {
 		Main.frame().setEnabled(false);
 		LoginWorker worker = new LoginWorker(username, password) {
 			protected void done() {
-				workThread.execute(new Runnable() {
+				driverThread.execute(new Runnable() {
 					public void run() {
-						onDone();
+						loginWorkerDone();
 					}
 				});
 			}
-			public void onDone() {
+			protected void loginWorkerDone() {
 				String responseStr = null;
 				try {
 					responseStr = get();
@@ -114,20 +130,12 @@ public class Launch {
 		worker.execute();
 	}
 	
+	
+	
 	public void playOffline() {
 		String user = Main.frame().getMainPanel().getUsername();
 		RESPONSE = new LoginResponse("0: :" + user + ": ");
 		runLaunchGame();
-	}
-	
-	private static enum ProgressState {
-		None,
-		CheckingForUpdates,
-		ReadingCache,
-		Validating,
-		Updating,
-		Revalidating,
-		Launching
 	}
 	
 	protected void runLaunchGame() {
@@ -148,16 +156,17 @@ public class Launch {
 		GameUpdateWorker updateWorker;
 		Modpack modpack;
 		Throwable error = null;
+		Level logLevel = Level.INFO;
 		
 		ProgressState progress = ProgressState.None;
 		Main.frame().getOptionsGui().updateSettings();
 		try {
 			progress = ProgressState.ReadingCache;
-			System.out.println("Launch status: " + progress.name());
+			progress.log(logLevel);
 			modpack = Main.metaManager().loadModpack(Main.settings().getModpackName());
 			if (modpack.getUpdateURL() != null) {
 				progress = ProgressState.CheckingForUpdates;
-				System.out.println("Launch status: " + progress.name());
+				progress.log(logLevel);
 				try {
 					JsonElement nextJson = JsonUtils.readJsonURL(new URL(modpack.getUpdateURL()));
 					Modpack nextPack = new Modpack(nextJson.getAsJsonObject(), modpack.getUpdateURL());
@@ -176,7 +185,7 @@ public class Launch {
 			
 			if (Main.settings().shouldValidate()) {
 				progress = ProgressState.Validating;
-				System.out.println("Launch status: " + progress.name());
+				progress.log(logLevel);
 				validator = new PackValidator(cache, fileList);
 				statusList = validator.runHere();
 				statusSet = EnumSet.copyOf(statusList);
@@ -187,7 +196,7 @@ public class Launch {
 					}
 				} else {
 					progress = ProgressState.Updating;
-					System.out.println("Launch status: " + progress.name());
+					progress.log(logLevel);
 					if (setsOverlap(statusSet, FileStatus.StatusDoDownload)) {
 						updateWorker = new GameUpdateWorker(cache, fileList, statusList);
 						updateWorker.execute();
@@ -195,12 +204,11 @@ public class Launch {
 					}
 				}
 			} else {
-				System.out.println("WARNING: Skiping validation and update steps. Minecraft directory will NOT BE CHECKED.");
+				Log.warning("Skiping validation and update steps. Minecraft directory will NOT BE CHECKED.");
 			}
 			progress = ProgressState.Launching;
-			System.out.println("Launch status: " + progress.name());
+			progress.log(logLevel);
 			MinecraftLauncher.launchMinecraft(modpack, RESPONSE.username, RESPONSE.sessionID);
-			Main.frame().dispose();
 		} catch (ExecutionException e) {
 			error = e.getCause();
 		} catch (IOException e) {
@@ -212,6 +220,8 @@ public class Launch {
 		} catch (InterruptedException e) {
 			error = e;
 		} catch (InvalidModpackException e) {
+			error = e;
+		} catch (Exception e) {
 			error = e;
 		}
 		if (error != null) {

@@ -61,6 +61,7 @@ public class FileDownloader implements Callable<FileDownloader> {
 		}
 		file = new File(directory, fileName);
 		file.getParentFile().mkdirs();
+		System.out.println("File Name: " + file.getAbsolutePath());
 		
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		digis = new DigestInputStream(ncon.getInputStream(), md);
@@ -78,6 +79,9 @@ public class FileDownloader implements Callable<FileDownloader> {
 		while (bytesRead == TRANSFER_BYTES);
 		fos.close();
 		rbc.close();
+		
+		System.out.println("File Name: " + file.getAbsolutePath() + " : " + file.exists());
+		
 		md5Sum = Utils.bytesToHex(md.digest());
 		return this;
 	}

@@ -5,10 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -30,7 +32,7 @@ public class MinecraftLauncher {
 	
 	private static boolean forceForgeFirst = false;
 	
-	public static Process launchMinecraft(Modpack pack, String username, String sessid) throws IOException {
+	public static Process launchMinecraft(Modpack pack, String username, String sessid) throws Exception {
 		
 		File basepath = pack.getFolder().getAbsoluteFile();
 		File workingDir = new File(basepath, "bin/");
@@ -68,13 +70,19 @@ public class MinecraftLauncher {
 		if (OSUtils.getOS() == OSUtils.Windows) {
 			jvmPath += "w";
 		}
-		List<String> moreVMParams = Main.settings().getVMParams();
-		String nclasspath = cpBuilder.toString() + File.pathSeparator + getCurrentJar(); 
+		List<String> moreVMParams = new ArrayList<String>(Arrays.asList(Main.settings().getVMParams().split(" ")));
+		String nclasspath = cpBuilder.toString() + getCurrentJar(); 
 		ArrayList<String> procArgs = new ArrayList<String>();
 
 		procArgs.add(jvmPath);
-		if (moreVMParams.size() > 1)
-			procArgs.addAll(Main.settings().getVMParams());
+		for (int i=0; i<moreVMParams.size(); i++) {
+			if (moreVMParams.get(i).equals("")) {
+				moreVMParams.remove(i);
+				i--;
+			}
+		}
+		if (moreVMParams.size() > 0)
+			procArgs.addAll(moreVMParams);
 		procArgs.add("-Xmx" + Main.settings().getRamMax() + "M");
 		procArgs.add("-XX:+UseConcMarkSweepGC");
 		procArgs.add("-XX:+CMSIncrementalMode");
@@ -87,8 +95,20 @@ public class MinecraftLauncher {
 		procArgs.add(basepath.getAbsolutePath());
 		procArgs.add(username);
 		procArgs.add(sessid);
-		ProcessBuilder procBuilder = new ProcessBuilder(procArgs);
-		procBuilder.environment().put("APPDATA", basepath.getParent());
+		ProcessBuilder procBuilder = null;
+		try {
+			procBuilder = new ProcessBuilder(procArgs);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		if (OSUtils.getOS() == OSUtils.Windows)
+			procBuilder.environment().put("APPDATA", basepath.getParent());
+		if (OSUtils.getOS() == OSUtils.Mac) {
+			File mcd = OSUtils.Mac.getMinecraftDirFrom(basepath.getParentFile()).getParentFile();
+			mcd.mkdirs();
+			Runtime.getRuntime().exec(new String[]{"ln","-s","../../minecraft","minecraft"}, null, mcd);
+		}
 		final boolean debugMode = Settings.isDebugMode(); 
 		if (debugMode) {
 			System.out.println(""+procArgs);
@@ -98,7 +118,9 @@ public class MinecraftLauncher {
 		} else {
 //			procBuilder.inheritIO();
 		}
+		System.out.println("About to start");
 		Process proc = procBuilder.start();
+		System.out.println("After start");
 		if (debugMode) {
 			new StreamPipe(proc.getInputStream(), System.out).start();
 			new StreamPipe(proc.getErrorStream(), System.err).start();
@@ -164,7 +186,14 @@ public class MinecraftLauncher {
 	}
 	
 	public static String getCurrentJar() {
+		
+		
 		String val = new File(MinecraftLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
+		try {
+			val = URLDecoder.decode(val, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		System.out.println(val);
 		return val;
 	}
@@ -182,7 +211,7 @@ public class MinecraftLauncher {
 		jf.close();
 		if (!hasMetaInf)
 			return;
-		File outputFile = new File(inputFile.getName()+".tmp");
+		File outputFile = new File(inputFile.getAbsolutePath()+".tmp");
 		JarInputStream jis = new JarInputStream(new FileInputStream(inputFile));
 		JarOutputStream jos = new JarOutputStream(new FileOutputStream(outputFile));
 		JarEntry entry;

@@ -1,5 +1,7 @@
 package com.github.vortexellauncher;
 
+import java.io.File;
+
 public enum OSUtils {
 	
 	Windows {
@@ -17,8 +19,9 @@ public enum OSUtils {
 		}
 	},
 	Mac {
+		private static final String MC_PATH = "/Library/Application Support/"; 
 		public String getDataDir() {
-			return System.getenv("HOME") + "/Library/Application Support/"+LAUNCHER_DIR;
+			return System.getenv("HOME") + MC_PATH + LAUNCHER_DIR;
 		}
 		public String getNatives() {
 			return "macosx_natives.jar";
@@ -28,6 +31,9 @@ public enum OSUtils {
 		}
 		public String getMCFolderName() {
 			return "minecraft";
+		}
+		public File getMinecraftDirFrom(File basedir) {
+			return new File(basedir, MC_PATH + "minecraft");
 		}
 	},
 	Linux {
@@ -48,7 +54,8 @@ public enum OSUtils {
 	public static final String LAUNCHER_DIR = "modlauncher";
 	
 	private static OSUtils currentOS = null;
-	static {
+	
+	private static void selectOS() {
 		String name = System.getProperty("os.name").toLowerCase();
 		if (name.contains("win")) currentOS = Windows;
 		else if (name.contains("linux")) currentOS = Linux;
@@ -57,26 +64,28 @@ public enum OSUtils {
 	}
 	
 	public static OSUtils getOS() {
+		if (currentOS == null)
+			selectOS();
 		return currentOS;
 	}
 	
 	public static String dataDir() {
-		return currentOS.getDataDir();
+		return getOS().getDataDir();
 	}
 	public static String nativesJar() {
-		return currentOS.getNatives();
+		return getOS().getNatives();
 	}
 	public static String nativesURL() {
-		return currentOS.getNativesURL();
+		return getOS().getNativesURL();
 	}
 	public static String mcFolderName() {
-		return currentOS.getMCFolderName();
+		return getOS().getMCFolderName();
 	}
 	
 	public abstract String getDataDir();
 	public abstract String getNatives();
 	public abstract String getNativesURL();
 	public abstract String getMCFolderName();
-	
+	public File getMinecraftDirFrom(File basedir) { return new File(basedir, "minecraft"); }
 	
 }
