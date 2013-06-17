@@ -2,24 +2,18 @@ package com.github.vortexellauncher;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
 
-import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.gui.LogView;
 import com.github.vortexellauncher.gui.MainFrame;
 import com.github.vortexellauncher.gui.Res;
+import com.github.vortexellauncher.gui.Styler;
 import com.github.vortexellauncher.launch.Launch;
 import com.github.vortexellauncher.pack.PackMetaManager;
-import com.github.vortexellauncher.util.JsonUtils;
-import com.github.vortexellauncher.util.Utils;
-import com.google.gson.JsonElement;
 
 public class Main {
 	
@@ -34,112 +28,48 @@ public class Main {
 	private static PackMetaManager metaManager;
 	private static Logger logger;
 	
-	public static File lastLoginFile;
+	public static final File lastLoginFile = new File(OSUtils.dataDir(), "loginlast");
 	
 	public static void main(String[] args) {
 		System.out.println(Arrays.asList(args));
-		if (OSUtils.getOS() == OSUtils.Mac) {
-			boolean foundNoJVM = false;
-			for (String s : args) {
-				if (s.equals("-nojvm")) {
-					foundNoJVM = true;
-					break;
-				}
-			}
-			if (!foundNoJVM) {
-//				Runtime.getRuntime().exec(new String[]{System.getProperty())
-			}
-		}
+		Init.doOSXFix(args);
 		
+		// create the logger
 		logger = Logger.getLogger(LOGGER_NAME);
-//		logger.setLevel(Level.INFO);
-		logger.setLevel(Level.FINE);
+		logger.setLevel(Level.INFO);
 		
-		lastLoginFile = new File(OSUtils.dataDir(), "loginlast");
+		// create the launch instance
 		instance = new Launch();
-		settings = new Settings("default");
+		 
+		Styler.setLookAndFeel();
+		Styler.setStyle();
 		
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				loadGui();
-			}
-		});
-		
-		
-		try {
-			settings.doLoad();
-		} catch (Exception e) {
-		}
-		try {
-			File osDir = new File(OSUtils.dataDir()); 
-			if (!osDir.exists()) {
-				osDir.mkdirs();
-			}
-			
-			metaManager = new PackMetaManager();
-			for(int i=0; i<Defaults.MODPACKS.length; i+=2) {
-				try {
-					String packName = Defaults.MODPACKS[i];
-					if (!metaManager.hasPack(packName)) {
-						JsonElement elem = JsonUtils.readJsonURL(new URL(Defaults.MODPACKS[i+1]));
-						metaManager.updatePack(elem.getAsJsonObject(), packName);
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InvalidModpackException e) {
-					e.printStackTrace();
-				}
-			}
-			if (settings().getModpackName().equals("")) {
-				settings().setModpackName("Vortexel Modpack");
-			}
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					frame.getMainPanel().updateModpackList();
-					frame.getMainPanel().updateModpackName();
-				}
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-			frame.dispose();
-		}
-	}
-	
-	private static void loadGui() {
-		try {
-			for(LookAndFeelInfo lafi : UIManager.getInstalledLookAndFeels()) {
-				if (lafi.getName().equals("Nimbus")) {
-					UIManager.setLookAndFeel(lafi.getClassName());
-					break;
-				}
-			}
-		} catch (Exception e) {
-			try {
-				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch (Exception e1) {
-			}
-		}
+		// logView provides a way to report error so create it before most errors can be thrown
 		logView = new LogView();
 		logView.addRedirect();
+		
 		try {
-			Res.init();
-		} catch (IOException e) {
-			//TODO crash message
-			e.printStackTrace();
-			logView.setVisible(true);
-		}
-		frame = new MainFrame();
-		frame.setVisible(true);
-		try {
-			
-			String lastLoginStr = Utils.simpleCryptIn(lastLoginFile);
-			if (lastLoginStr != null) {
-				UserPass up = new UserPass(lastLoginStr);
-				Main.frame().getMainPanel().setUserPass(up.getUsername(), up.getPassword());
-				Main.frame().getMainPanel().getChkRemember().setSelected(true);
+			// this will also create the primary data folder
+			if (!Settings.settingsDir.exists()) {
+				Settings.settingsDir.mkdirs();
 			}
-		} catch(Exception e) {
-			e.printStackTrace();
+			Res.init();
+			settings = new Settings("default");
+			try {
+				settings.doLoad();
+			} catch (IOException e) { // ingore IOExceptions
+			}
+			SwingUtilities.invokeLater(new Runnable() { // initialize main gui
+				public void run() {
+					frame = new MainFrame();
+					frame.setVisible(true);
+					Init.loadLastLogin();
+				}
+			});
+			metaManager = new PackMetaManager();
+			Init.loadModpacks();
+		} catch (Exception e) {
+			fatalException(e);
 		}
 	}
 	
@@ -162,6 +92,14 @@ public class Main {
 		logView.dispose();
 		System.exit(0);
 		return true;
+	}
+	
+	public static void fatalException(Throwable t) {
+		log().log(Level.SEVERE, "", t);
+		if (frame() != null) {
+			frame().dispose();
+		}
+		logView().setVisible(true);
 	}
 	
 	public static Launch launchpad() {

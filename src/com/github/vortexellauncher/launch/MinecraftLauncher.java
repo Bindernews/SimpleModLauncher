@@ -5,16 +5,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
@@ -27,6 +24,7 @@ import com.github.vortexellauncher.io.StreamPipe;
 import com.github.vortexellauncher.pack.ModFile;
 import com.github.vortexellauncher.pack.ModType;
 import com.github.vortexellauncher.pack.Modpack;
+import com.github.vortexellauncher.util.LaunchUtils;
 
 public class MinecraftLauncher {
 	
@@ -66,15 +64,11 @@ public class MinecraftLauncher {
 			cpBuilder.append(File.pathSeparatorChar);
 		}
 		
-		String jvmPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-		if (OSUtils.getOS() == OSUtils.Windows) {
-			jvmPath += "w";
-		}
-		List<String> moreVMParams = new ArrayList<String>(Arrays.asList(Main.settings().getVMParams().split(" ")));
-		String nclasspath = cpBuilder.toString() + getCurrentJar(); 
+		ArrayList<String> moreVMParams = new ArrayList<String>(Arrays.asList(Main.settings().getVMParams().split(" ")));
+		String nclasspath = cpBuilder.toString() + LaunchUtils.getCurrentJar(); 
 		ArrayList<String> procArgs = new ArrayList<String>();
 
-		procArgs.add(jvmPath);
+		procArgs.add(LaunchUtils.getJVMPath());
 		for (int i=0; i<moreVMParams.size(); i++) {
 			if (moreVMParams.get(i).equals("")) {
 				moreVMParams.remove(i);
@@ -183,19 +177,6 @@ public class MinecraftLauncher {
 			e.printStackTrace();
 			System.exit(0);
 		}
-	}
-	
-	public static String getCurrentJar() {
-		
-		
-		String val = new File(MinecraftLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile()).getAbsolutePath();
-		try {
-			val = URLDecoder.decode(val, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		System.out.println(val);
-		return val;
 	}
 	
 	public static void killMetaInf(File inputFile) throws IOException {

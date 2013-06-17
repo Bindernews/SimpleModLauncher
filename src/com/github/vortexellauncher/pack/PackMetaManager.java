@@ -8,7 +8,9 @@ import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
+import com.github.vortexellauncher.Log;
 import com.github.vortexellauncher.OSUtils;
 import com.github.vortexellauncher.exceptions.InvalidModpackException;
 import com.github.vortexellauncher.util.JsonUtils;
@@ -44,6 +46,10 @@ public class PackMetaManager {
 				modpackList.add(loadModpack(ent.getKey()));
 			} catch (InvalidModpackException e) {
 				metadata.remove(ent.getKey());
+				Log.log(Level.SEVERE, e.getMessage(), e);
+			} catch (IOException e) {
+				metadata.remove(ent.getKey());
+				Log.log(Level.SEVERE, e.getMessage(), e);
 			}
 		}
 		saveJson();

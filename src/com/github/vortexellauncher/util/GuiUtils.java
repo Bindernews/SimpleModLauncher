@@ -29,6 +29,7 @@ public class GuiUtils {
 	
 	public static void reportMessage(String title, String message) {
 		JDialog jd = new JDialog(Main.frame(), title, true);
+		jd.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		jd.setResizable(false);
 		
 		JTextArea jta = new JTextArea(message);

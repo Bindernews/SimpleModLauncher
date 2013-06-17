@@ -16,15 +16,11 @@ public class Res {
 	public static Font mcfont;
 	public static ImageIcon defaultModpackIcon = new ImageIcon(getURL("res/default_icon.png"));
 	public static ImageIcon iconError = new ImageIcon(getURL("res/error.png"));
-
 	
-	public static void init() throws IOException {
+	
+	public static void init() throws IOException, FontFormatException {
 		// load font
-		try {
-			mcfont = Font.createFont(Font.TRUETYPE_FONT, sysloader.getResourceAsStream("res/minecraft.ttf"));
-		} catch (FontFormatException e) {
-			throw new IOException(e);
-		}
+		mcfont = Font.createFont(Font.TRUETYPE_FONT, sysloader.getResourceAsStream("res/minecraft.ttf"));
 	}
 	
 	public static InputStream getResourceStream(String name) {

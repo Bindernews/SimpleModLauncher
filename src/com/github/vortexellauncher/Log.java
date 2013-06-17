@@ -146,4 +146,8 @@ public class Log {
 		logger.warning(msg);
 	}
 
+	public static void setVisible(boolean b) {
+		Main.logView().setVisible(b);
+	}
+
 }

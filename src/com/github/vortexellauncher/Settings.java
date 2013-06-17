@@ -6,34 +6,55 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.ArrayList;
 import java.util.InvalidPropertiesFormatException;
 import java.util.List;
 import java.util.Properties;
 
+import com.github.vortexellauncher.exceptions.DuplicateNameException;
 import com.github.vortexellauncher.pack.Modpack;
 
 public class Settings extends Properties {
 	private static final long serialVersionUID = 69226487626269165L;
 	
-	private static List<Settings> allSettings;
-			
+	public static final File settingsDir = new File(OSUtils.dataDir(), "settings/");
+	
+	private static final List<Settings> allSettings = new ArrayList<Settings>();
+	
+	private static boolean debugMode = false;
+	
 	private String name;
+	private File settingsFile;
 	
 	private String vmargs = "";
 	/** Ram in MB */
 	private int ramMax;
 	private Proxy proxy = null;
 	private Modpack modpack;
-	private boolean redirectOutputToFile = false;
 	private String modpackName;
 	private boolean shouldValidate = true;
+	private boolean redirectOutputToFile = false;
 	
-	private static boolean debugMode = false;
 	
-	private static File settingsFile = new File(OSUtils.dataDir(), "settings.xml");
-	
-	public Settings(String settingsName) {
+	public Settings(String settingsName) throws DuplicateNameException {
 		name = settingsName;
+		settingsFile = new File(settingsDir, name + ".xml");
+		for(Settings set : allSettings) {
+			if (set.name.equalsIgnoreCase(name)) {
+				throw new DuplicateNameException("A configuration with this name already exists");
+			}
+		}
+		allSettings.add(this);
+	}
+	
+	public Settings(String settingsName, Settings copyFrom) throws DuplicateNameException {
+		this(settingsName);
+		setVMParams(copyFrom.getVMParams());
+		setRamMax(copyFrom.getRamMax());
+		setProxy(copyFrom.getProxy());
+		setModpack(copyFrom.getModpack());
+		setModpackName(copyFrom.getModpackName());
+		setShouldValidate(copyFrom.shouldValidate());
 	}
 	
 	public void updateToProperties() {
@@ -70,6 +91,23 @@ public class Settings extends Properties {
 		}
 	}
 	
+	/**
+	 * @return The name of this settings configuration
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	public void doLoad() throws InvalidPropertiesFormatException, IOException {
+		loadFromXML(new FileInputStream(settingsFile));
+		updateFromProperties();
+	}
+	
+	public void doSave() throws IOException {
+		updateToProperties();
+		storeToXML(new FileOutputStream(settingsFile), "Vortexel Launcher Settings", "UTF-8");
+	}
+	
 	public boolean getBoolean(String key) {
 		try {
 			return Boolean.parseBoolean(getProperty(key));
@@ -100,11 +138,11 @@ public class Settings extends Properties {
 	public Proxy getProxy() {
 		return proxy;
 	}
-	public Modpack getModpack() {
-		return modpack;
-	}
 	public void setModpack(Modpack mp) {
 		modpack = mp;
+	}
+	public Modpack getModpack() {
+		return modpack;
 	}
 	public String getModpackName() {
 		return modpackName != null ? modpackName : "";
@@ -127,20 +165,21 @@ public class Settings extends Properties {
 	public void setShouldValidate(boolean v) {
 		shouldValidate = v;
 	}
+	
 	public static boolean isDebugMode() {
 		return debugMode;
 	}
 	public static void setDebugMode(boolean debug) {
 		debugMode = debug;	
 	}
-
-	public void doLoad() throws InvalidPropertiesFormatException, IOException {
-		loadFromXML(new FileInputStream(settingsFile));
-		updateFromProperties();
-	}
 	
-	public void doSave() throws IOException {
-		updateToProperties();
-		storeToXML(new FileOutputStream(settingsFile), "Vortexel Launcher Settings", "UTF-8");
+	public static void loadAllSettings() throws DuplicateNameException, InvalidPropertiesFormatException, IOException {
+		File[] files = settingsDir.listFiles();
+		for(File f : files) {
+			String name = f.getName();
+			name = name.substring(0, name.lastIndexOf("."));
+			Settings sets = new Settings(name);
+			sets.doLoad();
+		}
 	}
 }
