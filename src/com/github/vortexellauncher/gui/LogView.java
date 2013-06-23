@@ -22,11 +22,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
+import javax.swing.JTextArea;
 
 import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.io.MultiOutputStream;
-import com.github.vortexellauncher.io.TextPaneOutputStream;
+import com.github.vortexellauncher.io.TextAreaOutputStream;
 import com.github.vortexellauncher.util.DebugUtils;
 
 public class LogView extends JFrame implements ClipboardOwner {
@@ -35,7 +35,7 @@ public class LogView extends JFrame implements ClipboardOwner {
 	private static PrintStream normalOut = System.out, normalErr = System.err;
 	private PrintStream outPrinter, errPrinter;
 
-	private JTextPane text;
+	private JTextArea text;
 	private LogView self;
 
 	public LogView() {
@@ -50,14 +50,12 @@ public class LogView extends JFrame implements ClipboardOwner {
 			}
 		});
 
-		text = new JTextPane();
+		text = new JTextArea();
 		text.setFont(Font.decode(Font.MONOSPACED + "-12"));
 		text.setBackground(Color.WHITE);
 		text.setEditable(false);
 		
-		JPanel p = new JPanel(new BorderLayout());
-		p.add(text, BorderLayout.CENTER);
-		JScrollPane jsp = new JScrollPane(p);
+		JScrollPane jsp = new JScrollPane(text);
 		jsp.setPreferredSize(new Dimension(6, 80));
 		getContentPane().add(jsp, BorderLayout.CENTER);
 
@@ -95,9 +93,9 @@ public class LogView extends JFrame implements ClipboardOwner {
 
 	private void setupStreams() {
 		outPrinter = new PrintStream(new MultiOutputStream(
-				new TextPaneOutputStream(text, Color.BLACK), normalOut));
+				new TextAreaOutputStream(text), normalOut));
 		errPrinter = new PrintStream(new MultiOutputStream(
-				new TextPaneOutputStream(text, Color.RED), normalErr));
+				new TextAreaOutputStream(text), normalErr));
 	}
 
 	public void addRedirect() {

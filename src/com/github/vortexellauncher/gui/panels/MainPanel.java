@@ -42,7 +42,9 @@ public class MainPanel extends JPanel {
 	
 	private MainFrame mainFrame;
 	
-	
+	public MainPanel() {
+		this(null);
+	}
 	public MainPanel(MainFrame frame) {
 		mainFrame = frame;
 		GridBagLayout gbl_contentPane = new GridBagLayout();

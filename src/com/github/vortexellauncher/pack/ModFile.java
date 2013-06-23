@@ -21,7 +21,7 @@ public class ModFile {
 	
 	private String md5 = null;
 	private VersionData version = null;
-	private String filename;
+	private String filename = null;
 	
 	private String cacheFilename = null;
 	private String cacheMD5 = null;
@@ -41,23 +41,12 @@ public class ModFile {
 	}
 	
 	public void loadJson(JsonObject obj, String oname) throws InvalidModpackException {
-		// required
 		name = oname;
 		url = JsonUtils.validateString(obj,"url",true);
 		version = VersionData.create(JsonUtils.validateString(obj, "version", false));
 		type = new JsonUtils.TL<ModType>(ModType.class).safeGetEnum(obj, "type");
-		
-		// optional
-		md5 = JsonUtils.validateString(obj,"md5",false);
 		filename = JsonUtils.validateString(obj,"filename",false);
-	}
-	
-	public boolean compareMD5(String hash) {
-		if (md5 == null) {
-			return true;
-		} else {
-			return md5.equals(hash);
-		}
+		md5 = JsonUtils.validateString(obj,"md5",false);
 	}
 	
 	public boolean updateMD5(String hash) {

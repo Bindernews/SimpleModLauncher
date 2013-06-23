@@ -53,6 +53,8 @@ public class Modpack {
 			
 			JsonObject mods = obj.get("mods").getAsJsonObject();
 			for(Entry<String,JsonElement> ee : mods.entrySet()) {
+				if (ee.getKey().startsWith("##")) // lines with keys that start with ## are comments
+					continue;
 				ModFile mm = new ModFile();
 				if (!ee.getValue().isJsonObject())
 					throw new InvalidModpackException("Mod " + ee.getKey() + " is not a Json Object");
