@@ -12,7 +12,7 @@ import java.util.logging.Level;
 
 import com.github.vortexellauncher.Log;
 import com.github.vortexellauncher.OSUtils;
-import com.github.vortexellauncher.exceptions.InvalidModpackException;
+import com.github.vortexellauncher.exceptions.JsonValidationException;
 import com.github.vortexellauncher.util.JsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -44,7 +44,7 @@ public class PackMetaManager {
 		for(Entry<String, JsonElement> ent : metadata.entrySet()) {
 			try {
 				modpackList.add(loadModpack(ent.getKey()));
-			} catch (InvalidModpackException e) {
+			} catch (JsonValidationException e) {
 				metadata.remove(ent.getKey());
 				Log.log(Level.SEVERE, e.getMessage(), e);
 			} catch (IOException e) {
@@ -67,7 +67,7 @@ public class PackMetaManager {
 		return new File(getFolder(pack).getParentFile(), "modpack.json");
 	}
 	
-	public Modpack loadModpack(String pack) throws IOException, InvalidModpackException {
+	public Modpack loadModpack(String pack) throws IOException, JsonValidationException {
 		File file = getModpackJsonFile(pack);
 		JsonObject jobj = JsonUtils.readJsonFile(file).getAsJsonObject();
 		Modpack modpack = new Modpack(jobj, pack);
@@ -89,7 +89,7 @@ public class PackMetaManager {
 		return true;
 	}
 	
-	public String updatePack(JsonObject jobj, String name) throws IOException, InvalidModpackException {
+	public String updatePack(JsonObject jobj, String name) throws IOException, JsonValidationException {
 		Modpack modpack = new Modpack(jobj, name);
 		
 		JsonObject ob = new JsonObject();

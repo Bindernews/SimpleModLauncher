@@ -78,7 +78,6 @@ public class PackCache {
 	
 	public VersionData getVersion(ModFile modfile) {
 		String prop = getModProperty(modfile.name, "version");
-		if (prop == null) return null;
 		return VersionData.create(prop);
 	}
 	

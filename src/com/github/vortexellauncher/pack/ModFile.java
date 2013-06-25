@@ -2,7 +2,7 @@ package com.github.vortexellauncher.pack;
 
 import com.github.vortexellauncher.VersionData;
 import com.github.vortexellauncher.exceptions.HashComparionException;
-import com.github.vortexellauncher.exceptions.InvalidModpackException;
+import com.github.vortexellauncher.exceptions.JsonValidationException;
 import com.github.vortexellauncher.util.JsonUtils;
 import com.google.gson.JsonObject;
 
@@ -40,10 +40,12 @@ public class ModFile {
 		isArchive = archive;
 	}
 	
-	public void loadJson(JsonObject obj, String oname) throws InvalidModpackException {
-		name = oname;
+	public void loadJson(JsonObject obj, String oname) throws JsonValidationException {
+		name = JsonUtils.validateString(obj, "name", false);
+		if (name == null)
+			name = oname;
 		url = JsonUtils.validateString(obj,"url",true);
-		version = VersionData.create(JsonUtils.validateString(obj, "version", false));
+		version = VersionData.ensureCreate(JsonUtils.validateString(obj, "version", false));
 		type = new JsonUtils.TL<ModType>(ModType.class).safeGetEnum(obj, "type");
 		filename = JsonUtils.validateString(obj,"filename",false);
 		md5 = JsonUtils.validateString(obj,"md5",false);

@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -16,8 +18,14 @@ import com.github.vortexellauncher.gui.Res;
 
 public class ErrorUtils {
 	
-	public static void showErrorGui(Window owner, String message, String error) {
+	public static void showErrorGui(Window owner, String message, String error, final boolean attemptExit) {
 		JDialog d = new JDialog(owner, "Error", Dialog.ModalityType.APPLICATION_MODAL);
+		d.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				if (attemptExit)
+					Main.attemptExit();
+			}
+		});
 		JLabel lbl = new JLabel(message);
 		lbl.setIcon(Res.iconError);
 		JTextArea jta = new JTextArea(error, 6, 16);

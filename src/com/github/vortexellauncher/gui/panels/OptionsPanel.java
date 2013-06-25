@@ -19,6 +19,9 @@ import javax.swing.text.NumberFormatter;
 import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.Settings;
 import com.github.vortexellauncher.gui.ItemClickListener;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class OptionsPanel extends JPanel {
 	
@@ -30,6 +33,8 @@ public class OptionsPanel extends JPanel {
 	private JFormattedTextField ramMaxField;
 	private JTextField socksHost;
 	private JCheckBox chkDoNotValidate;
+	private JButton btnCancel;
+	private JButton btnOk;
 
 	public OptionsPanel() {
 		setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -37,9 +42,9 @@ public class OptionsPanel extends JPanel {
 //		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{76, 0, 0};
-		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0};
+		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
 		gridBagLayout.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gridBagLayout);
 		
 		JComboBox comboBox = new JComboBox();
@@ -141,10 +146,50 @@ public class OptionsPanel extends JPanel {
 		
 		chkDoNotValidate = new JCheckBox("Do not validate");
 		GridBagConstraints gbc_chkDoNotValidate = new GridBagConstraints();
+		gbc_chkDoNotValidate.insets = new Insets(0, 0, 5, 0);
 		gbc_chkDoNotValidate.gridwidth = 2;
 		gbc_chkDoNotValidate.gridx = 0;
 		gbc_chkDoNotValidate.gridy = 5;
 		add(chkDoNotValidate, gbc_chkDoNotValidate);
+		
+		JPanel panel = new JPanel();
+		GridBagConstraints gbc_panel = new GridBagConstraints();
+		gbc_panel.gridwidth = 2;
+		gbc_panel.insets = new Insets(0, 0, 0, 5);
+		gbc_panel.fill = GridBagConstraints.BOTH;
+		gbc_panel.gridx = 0;
+		gbc_panel.gridy = 6;
+		add(panel, gbc_panel);
+		
+		btnOk = new JButton("Ok");
+		btnOk.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				updateToSettings();
+			}
+		});
+		panel.add(btnOk);
+		
+		btnCancel = new JButton("Cancel");
+		btnCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				updateFromSettings();
+			}
+		});
+		panel.add(btnCancel);
+	}
+	
+	public void updateToSettings() {
+		Settings sets = Main.settings();
+		sets.setRamMax(getRamMax());
+		sets.setVMParams(getVmargs());
+		sets.setShouldValidate(!chkDoNotValidate.isSelected());
+	}
+	
+	public void updateFromSettings() {
+		Settings sets = Main.settings();
+		ramMaxField.setValue(new Integer(sets.getRamMax()));
+		vmargsField.setText(sets.getVMParams());
+		getChkDoNotValidate().setSelected(sets.shouldValidate());
 	}
 	
 	public JTextField getVmargsField() {
@@ -163,13 +208,14 @@ public class OptionsPanel extends JPanel {
 		}
 	}
 	
-	public void updateSettings() {
-		Settings sets = Main.settings();
-		sets.setRamMax(getRamMax());
-		sets.setVMParams(getVmargs());
-		sets.setShouldValidate(!chkDoNotValidate.isSelected());
-	}
 	public JCheckBox getChkDoNotValidate() {
 		return chkDoNotValidate;
+	}
+	
+	public JButton getBtnCancel() {
+		return btnCancel;
+	}
+	public JButton getBtnOk() {
+		return btnOk;
 	}
 }

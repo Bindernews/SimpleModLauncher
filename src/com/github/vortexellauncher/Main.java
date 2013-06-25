@@ -17,7 +17,7 @@ import com.github.vortexellauncher.pack.PackMetaManager;
 
 public class Main {
 	
-	public static final VersionData VERSION = new VersionData(1,0,0,0);
+	public static final VersionData VERSION = new VersionData(1,3,0);
 	public static final String UPDATE_URL = "https://googledrive.com/host/0Bw00_I2xsVk3WnNQaTRNby1GeHc/launcher_info.txt";
 	public static final String LOGGER_NAME = "Vortexel Launcher";
 	
@@ -82,7 +82,7 @@ public class Main {
 		if (frame().isDisplayable() || logView.isVisible()) {
 			return false;
 		}
-		frame().getOptionsGui().updateSettings();
+		frame().getOptionsGui().updateToSettings();
 		try {
 			settings().doSave();
 		} catch (IOException e) {

@@ -29,4 +29,13 @@ public enum ModType {
 	public File getDir(File parent) {
 		return new File(parent, directoryName);
 	}
+	
+	public static ModType fromString(String vstr) {
+		for(ModType mcv : ModType.values()) {
+			if (vstr.equalsIgnoreCase(mcv.name())) {
+				return mcv;
+			}
+		}
+		return null;
+	}
 }

@@ -17,7 +17,7 @@ import com.github.vortexellauncher.Main;
 import com.github.vortexellauncher.OSUtils;
 import com.github.vortexellauncher.UserPass;
 import com.github.vortexellauncher.VersionData;
-import com.github.vortexellauncher.exceptions.InvalidModpackException;
+import com.github.vortexellauncher.exceptions.JsonValidationException;
 import com.github.vortexellauncher.exceptions.ValidationException;
 import com.github.vortexellauncher.gui.dialogs.OfflineDialog;
 import com.github.vortexellauncher.pack.FileStatus;
@@ -159,7 +159,7 @@ public class Launch {
 		Level logLevel = Level.INFO;
 		
 		ProgressState progress = ProgressState.None;
-		Main.frame().getOptionsGui().updateSettings();
+		Main.frame().getOptionsGui().updateToSettings();
 		try {
 			progress = ProgressState.ReadingCache;
 			progress.log(logLevel);
@@ -208,7 +208,11 @@ public class Launch {
 			}
 			progress = ProgressState.Launching;
 			progress.log(logLevel);
-			MinecraftLauncher.launchMinecraft(modpack, RESPONSE.username, RESPONSE.sessionID);
+			try {
+				MinecraftLauncher.launchMinecraft(modpack, RESPONSE.username, RESPONSE.sessionID);
+			} catch (Exception e) {
+				error = e;
+			}
 		} catch (ExecutionException e) {
 			error = e.getCause();
 		} catch (IOException e) {
@@ -219,13 +223,12 @@ public class Launch {
 			error = e;
 		} catch (InterruptedException e) {
 			error = e;
-		} catch (InvalidModpackException e) {
-			error = e;
-		} catch (Exception e) {
+		} catch (JsonValidationException e) {
 			error = e;
 		}
 		if (error != null) {
-			ErrorUtils.printException("Exception occured while " + progress.name(), error, true);
+			ErrorUtils.showErrorGui(null, error.getMessage(), ErrorUtils.getExceptionString(error), true);
+			//ErrorUtils.printException("Exception occured while " + progress.name(), error, false);
 		}
 		Main.frame().dispose();
 		Main.attemptExit();

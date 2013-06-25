@@ -21,6 +21,7 @@ import com.github.vortexellauncher.gui.ArrayListModel;
 import com.github.vortexellauncher.gui.HelpTextField;
 import com.github.vortexellauncher.gui.ItemClickListener;
 import com.github.vortexellauncher.gui.MainFrame;
+import com.github.vortexellauncher.gui.dialogs.AboutDialog;
 import com.github.vortexellauncher.pack.Modpack;
 
 public class MainPanel extends JPanel {
@@ -41,6 +42,7 @@ public class MainPanel extends JPanel {
 	private ItemClickListener clickListener;
 	
 	private MainFrame mainFrame;
+	private JButton btnAbout;
 	
 	public MainPanel() {
 		this(null);
@@ -50,8 +52,8 @@ public class MainPanel extends JPanel {
 		GridBagLayout gbl_contentPane = new GridBagLayout();
 		gbl_contentPane.columnWidths = new int[]{114, 0, 0};
 		gbl_contentPane.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_contentPane.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
-		gbl_contentPane.rowWeights = new double[]{0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
+		gbl_contentPane.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
+		gbl_contentPane.rowWeights = new double[]{0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		setLayout(gbl_contentPane);
 		
 		clickListener = new ItemClickListener().
@@ -165,6 +167,19 @@ public class MainPanel extends JPanel {
 		gbc_btnDebug.gridx = 0;
 		gbc_btnDebug.gridy = 6;
 		add(btnDebug, gbc_btnDebug);
+		
+		btnAbout = new JButton("About");
+		btnAbout.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				new AboutDialog(Main.frame()).setVisible(true);
+			}
+		});
+		GridBagConstraints gbc_btnAbout = new GridBagConstraints();
+		gbc_btnAbout.gridwidth = 2;
+		gbc_btnAbout.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnAbout.gridx = 0;
+		gbc_btnAbout.gridy = 7;
+		add(btnAbout, gbc_btnAbout);
 		
 		//txtUsername.setFont(Res.mcfont.deriveFont(12.0f));
 	}

@@ -1,14 +1,18 @@
 package com.github.vortexellauncher.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import com.github.vortexellauncher.Main;
@@ -16,11 +20,6 @@ import com.github.vortexellauncher.gui.dialogs.AddModpack;
 import com.github.vortexellauncher.gui.panels.MainPanel;
 import com.github.vortexellauncher.gui.panels.OptionsPanel;
 import com.github.vortexellauncher.util.GuiUtils;
-import javax.swing.JLabel;
-import javax.swing.ImageIcon;
-import javax.swing.SwingConstants;
-import javax.swing.JTextField;
-import java.awt.Font;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame {
@@ -40,9 +39,6 @@ public class MainFrame extends JFrame {
 		} catch (IOException e) {
 		} catch (NullPointerException e) {
 		}
-		
-		RocketSquidTicker ticker = new RocketSquidTicker();
-		ticker.start();
 		
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
@@ -70,9 +66,11 @@ public class MainFrame extends JFrame {
 		squidTicker.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		squidTicker.setEnabled(false);
 		squidTicker.setEditable(false);
-		squidTicker.setHorizontalAlignment(SwingConstants.RIGHT);
 		getContentPane().add(squidTicker, BorderLayout.SOUTH);
 		pack();
+		
+		RocketSquidTicker ticker = new RocketSquidTicker();
+		ticker.start();
 		
 		setMinimumSize(getSize());
 		setMaximumSize(getSize());

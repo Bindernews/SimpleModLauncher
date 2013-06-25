@@ -6,7 +6,7 @@ import java.util.logging.Level;
 
 import javax.swing.SwingUtilities;
 
-import com.github.vortexellauncher.exceptions.InvalidModpackException;
+import com.github.vortexellauncher.exceptions.JsonValidationException;
 import com.github.vortexellauncher.util.JsonUtils;
 import com.github.vortexellauncher.util.LaunchUtils;
 import com.github.vortexellauncher.util.Utils;
@@ -63,7 +63,7 @@ public class Init {
 			} catch (IOException e) {
 				Log.log(Level.SEVERE, "Failed to update modpack: " + packName, e);
 				Log.setVisible(true);
-			} catch (InvalidModpackException e) {
+			} catch (JsonValidationException e) {
 				Log.log(Level.SEVERE, "Invalid modpack: " + packName, e);
 				Log.setVisible(true);
 			}

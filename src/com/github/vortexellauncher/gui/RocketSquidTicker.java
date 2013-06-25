@@ -6,15 +6,16 @@ import com.github.vortexellauncher.Main;
 
 public class RocketSquidTicker extends Thread {
 	
-	public static final String TEXT = "The rocket squid loves you. It wants to stay with you forever because "
-			+ "you are the best thing that has ever happened to it. Don't deny the rocket squid. That would be "
-			+ "cruelty to animals. Just love the rocket squid. Take it on walks with you. Make it feel special "
-			+ "because it is special. It is the rocket squid.";
+	public static final String TEXT = "The rocket squid loves you."
+			+ "It wants to stay with you forever because you are the best\nthing that has ever happened to it."
+			+ "Don't deny the rocket squid. That would be cruelty to animals."
+			+ "Just love the rocket squid. Take it on walks with you."
+			+ "Make it feel special because it is special. It is the rocket squid.";
 	public static final int SPACES = 110;
-	private static String FULL_STR = null;
+	private static String FULL_STR = TEXT;
 	
 	private long startDelay = 1000;
-	private long typePause = 100;
+	private long typePause = 2000;
 	
 	private static ArrayList<Thread> tickerThreads = new ArrayList<Thread>();
 
@@ -34,15 +35,19 @@ public class RocketSquidTicker extends Thread {
 		try {
 			Thread.sleep(startDelay);
 			while(true) {
-				int pos = 1;
+				int pos = 0, lastPos = 0;
 				while(pos < FULL_STR.length()) {
-					int cols = 90;//Main.frame().getSquidTicker().getColumns()
-					int minPos = pos - cols;
-					if (minPos < 0)
-						minPos = 0;
-					Main.frame().getSquidTicker().setText(FULL_STR.substring(minPos, pos));
+					int i1 = FULL_STR.indexOf('.', lastPos+1)+1,
+							i2 = FULL_STR.indexOf('\n', lastPos+1);
+					if (i1 != -1 && i1 < i2 || i2 == -1) pos = i1;
+					if (i2 != -1 && i2 < i1 || i1 == -1) pos = i2;
+					if (i1 == -1 && i2 == -1) {
+						lastPos = 0;
+						pos = 0;
+					}
+					Main.frame().getSquidTicker().setText(FULL_STR.substring(lastPos, pos));
 					Thread.sleep(typePause);
-					pos++;
+					lastPos = pos;
 				}
 			}
 		} catch (InterruptedException e) {

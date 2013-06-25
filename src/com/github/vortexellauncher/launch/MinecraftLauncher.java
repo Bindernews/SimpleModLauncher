@@ -145,7 +145,7 @@ public class MinecraftLauncher {
 			
 			
 			URLClassLoader cl = new URLClassLoader(classUrls, MinecraftLauncher.class.getClassLoader());
-			System.out.println(Arrays.toString(cl.getURLs()));
+			//System.out.println(Arrays.toString(cl.getURLs()));
 			
 			Class<?> mcClass = cl.loadClass("net.minecraft.client.Minecraft");
 			for(Field ff : mcClass.getFields()) {

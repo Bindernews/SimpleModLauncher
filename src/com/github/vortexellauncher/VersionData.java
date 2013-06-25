@@ -46,9 +46,25 @@ public class VersionData implements Comparable<VersionData> {
 		return sb.toString();
 	}
 	
+	public static VersionData ensureCreate(String text) {
+		VersionData v = create(text);
+		if (v == null) {
+			v = new VersionData(0);
+		}
+		return v;
+	}
+	
+	public static VersionData safeCreate(String text) {
+		try {
+			return create(text);
+		} catch (NumberFormatException nfe) {
+			return null;
+		}
+	}
+	
 	public static VersionData create(String text) {
 		if (text == null || text.length() == 0) {
-			return new VersionData(0);
+			return null;
 		}
 		// split into version parts
 		String[] splits = text.split("\\.");

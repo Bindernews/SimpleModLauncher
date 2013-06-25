@@ -32,7 +32,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
 
 import com.github.vortexellauncher.Main;
-import com.github.vortexellauncher.exceptions.InvalidModpackException;
+import com.github.vortexellauncher.exceptions.JsonValidationException;
 import com.github.vortexellauncher.gui.Res;
 import com.github.vortexellauncher.util.ErrorUtils;
 import com.github.vortexellauncher.util.JsonUtils;
@@ -237,11 +237,11 @@ public class AddModpack extends JDialog {
 			Main.metaManager().updatePack(elem.getAsJsonObject(), fname);
 			Main.frame().getMainPanel().updateModpackList();
 		} catch (IOException ex) {
-			ErrorUtils.showErrorGui(self, "I/O Error:", ex.getMessage());
-		} catch (InvalidModpackException ex) {
-			ErrorUtils.showErrorGui(self, "Invalid Modpack:", ex.getMessage());
+			ErrorUtils.showErrorGui(self, "I/O Error:", ex.getMessage(), false);
+		} catch (JsonValidationException ex) {
+			ErrorUtils.showErrorGui(self, "Invalid Modpack: ", ex.getMessage(), false);
 		} catch (JsonSyntaxException ex) {
-			ErrorUtils.showErrorGui(self, "Invalid Modpack: ", ex.getMessage());
+			ErrorUtils.showErrorGui(self, "Invalid Modpack: ", ex.getMessage(), false);
 		} catch (Exception ex) {
 			ErrorUtils.printException("An unknown error occured", ex, false);
 		}
