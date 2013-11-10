@@ -17,7 +17,7 @@ import com.github.vortexellauncher.pack.Modpack;
 public class Settings extends Properties {
 	private static final long serialVersionUID = 69226487626269165L;
 	
-	public static final File settingsDir = new File(OSUtils.dataDir(), "settings/");
+	public static final File settingsDir = new File(OSInfo.dataDir(), "settings/");
 	
 	private static final List<Settings> allSettings = new ArrayList<Settings>();
 	

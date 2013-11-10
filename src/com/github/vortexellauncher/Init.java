@@ -23,7 +23,7 @@ public class Init {
 	private Init () {}
 	
 	public static void doOSXFix(String[] args) {
-		if (OSUtils.getOS() == OSUtils.Mac && System.getProperty("java.specification.version").equals("1.7")) {
+		if (OSInfo.getOS() == OSInfo.Mac && System.getProperty("java.specification.version").equals("1.7")) {
 			boolean foundNoJVM = false;
 			for (String s : args) {
 				if (s.equals("-nojvm")) {

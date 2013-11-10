@@ -37,7 +37,11 @@ public class MainFrame extends JFrame {
 			 launcherImage = ImageIO.read(MainFrame.class.getResource("/res/VortexelThumbnail.png"));
 			 setIconImage(launcherImage);
 		} catch (IOException e) {
+			e.printStackTrace();
+			Main.logView().setVisible(true);
 		} catch (NullPointerException e) {
+			e.printStackTrace();
+			Main.logView().setVisible(true);
 		}
 		
 		addWindowListener(new WindowAdapter() {
@@ -47,7 +51,6 @@ public class MainFrame extends JFrame {
 			}
 		});
 		addComponentListener(GuiUtils.sizeBoundsListener);
-		setFont(Res.mcfont);
 		setBounds(100, 100, 369, 188);
 		
 		contentPane = new MainPanel(this);

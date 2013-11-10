@@ -8,14 +8,16 @@ public class RocketSquidTicker extends Thread {
 	
 	public static final String TEXT = "The rocket squid loves you."
 			+ "It wants to stay with you forever because you are the best\nthing that has ever happened to it."
-			+ "Don't deny the rocket squid. That would be cruelty to animals."
-			+ "Just love the rocket squid. Take it on walks with you."
-			+ "Make it feel special because it is special. It is the rocket squid.";
+			+ "Don't deny the rocket squid.That would be cruelty to animals."
+			+ "Just love the rocket squid.Take it on walks with you."
+			+ "Make it feel special because it is special.It is the rocket squid."
+			+ "There is much you can learn from the rocket squid."
+			+ "It has degrees in history, philosophy, mathematics,\nand computer science.";
 	public static final int SPACES = 110;
 	private static String FULL_STR = TEXT;
 	
 	private long startDelay = 1000;
-	private long typePause = 2000;
+	private long typePause = 3500;
 	
 	private static ArrayList<Thread> tickerThreads = new ArrayList<Thread>();
 

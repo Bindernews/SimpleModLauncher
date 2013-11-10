@@ -11,7 +11,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 
 import com.github.vortexellauncher.Log;
-import com.github.vortexellauncher.OSUtils;
+import com.github.vortexellauncher.OSInfo;
 import com.github.vortexellauncher.exceptions.JsonValidationException;
 import com.github.vortexellauncher.util.JsonUtils;
 import com.google.gson.Gson;
@@ -26,7 +26,7 @@ public class PackMetaManager {
 		}
 	};
 	
-	private File metaFile = new File(OSUtils.dataDir(), "ModpackCache.txt");
+	private File metaFile = new File(OSInfo.dataDir(), "ModpackCache.txt");
 	private JsonObject metadata;
 	private JsonObject cacheJson;
 	private Gson gson = new Gson();
@@ -58,7 +58,7 @@ public class PackMetaManager {
 	public File getFolder(String pack) {
 		File fold = new File(asString(getPackElem(pack, "folder")));
 		if (!fold.isAbsolute()) {
-			fold = new File(OSUtils.dataDir(), fold.getPath());
+			fold = new File(OSInfo.dataDir(), fold.getPath());
 		}
 		return fold;
 	}

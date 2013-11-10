@@ -222,6 +222,7 @@ public class AddModpack extends JDialog {
 			JsonElement elem = null;
 			switch(getReturnValue()) {
 			case AddModpack.RETURN_CANCEL:
+				setVisible(false);
 				return; // do nothing
 			case AddModpack.RETURN_FILE:
 				File f = new File(getFile());

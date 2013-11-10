@@ -32,13 +32,13 @@ public class PackValidator extends CallWorker<List<FileStatus>> {
 	protected FileStatus validateFile(ModFile mf) {
 		if (!packData.isModDefined(mf)) {
 			if (mf.getFilename() != null) {
-				File tfile = new File(mf.type.getDir(packData.getModpack().getFolder()), mf.getFilename());
+				File tfile = new File(mf.type.getDir(packData.getModpack().mcversion, packData.getModpack().getFolder()), mf.getFilename());
 				if (tfile.exists()) return FileStatus.FoundButNotCached;
 				else return FileStatus.NotFound;
 			}
 			return FileStatus.NotCached;
 		}
-		File mfile = new File(mf.type.getDir(packData.getModpack().getFolder()), packData.getFilename(mf));
+		File mfile = new File(mf.type.getDir(packData.getModpack().mcversion, packData.getModpack().getFolder()), packData.getFilename(mf));
 		if (!mfile.exists())
 			return FileStatus.NotFoundButCached;
 		try {
@@ -49,7 +49,7 @@ public class PackValidator extends CallWorker<List<FileStatus>> {
 		}
 		if (!packData.getURL(mf).equals(mf.url))
 			return FileStatus.Update;
-		if (mf.getVersion().compareTo(packData.getVersion(mf)) > 0)
+		if (mf.getVersion().compareTo(packData.getVersion(mf)) != 0)
 			return FileStatus.Update;
 		return FileStatus.Valid;
 	}

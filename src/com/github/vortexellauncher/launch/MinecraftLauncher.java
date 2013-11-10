@@ -18,7 +18,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
 import com.github.vortexellauncher.Main;
-import com.github.vortexellauncher.OSUtils;
+import com.github.vortexellauncher.OSInfo;
 import com.github.vortexellauncher.Settings;
 import com.github.vortexellauncher.io.StreamPipe;
 import com.github.vortexellauncher.pack.ModFile;
@@ -41,7 +41,7 @@ public class MinecraftLauncher {
 		for(int i=0; i<pack.getMods().size(); i++) {
 			ModFile mf = pack.getMods().get(i); 
 			if (mf.type == ModType.Jar) {
-				String fpath = new File(mf.type.getDir(basepath), mf.getFilename()).getCanonicalPath();
+				String fpath = new File(mf.type.getDir(pack.mcversion, basepath), mf.getFilename()).getCanonicalPath();
 				if (mf.name.contains("forge") && mf.name.contains("minecraft") && forceForgeFirst) {
 					cpModList.add(0, fpath);
 				} else {
@@ -96,10 +96,10 @@ public class MinecraftLauncher {
 			e.printStackTrace();
 			throw e;
 		}
-		if (OSUtils.getOS() == OSUtils.Windows)
+		if (OSInfo.getOS() == OSInfo.Windows)
 			procBuilder.environment().put("APPDATA", basepath.getParent());
-		if (OSUtils.getOS() == OSUtils.Mac) {
-			File mcd = OSUtils.Mac.getMinecraftDirFrom(basepath.getParentFile()).getParentFile();
+		if (OSInfo.getOS() == OSInfo.Mac) {
+			File mcd = OSInfo.Mac.getMinecraftDirFrom(basepath.getParentFile()).getParentFile();
 			mcd.mkdirs();
 			Runtime.getRuntime().exec(new String[]{"ln","-s","../../minecraft","minecraft"}, null, mcd);
 		}

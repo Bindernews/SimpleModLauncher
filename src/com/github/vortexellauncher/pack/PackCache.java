@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import com.github.vortexellauncher.OSUtils;
+import com.github.vortexellauncher.OSInfo;
 import com.github.vortexellauncher.VersionData;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -15,27 +15,33 @@ public class PackCache {
 
 	private Gson gson = new Gson();
 	private JsonObject root;
+	private JsonObject realRoot;
 	private File cacheFile;
 	private Modpack modpack;
 	
 	public PackCache(Modpack pack) throws IOException {
 		modpack = pack;
-		cacheFile = new File(OSUtils.dataDir(), pack.folder + File.separator + "cache.txt");
+		cacheFile = new File(OSInfo.dataDir(), pack.folder + File.separator + "cache.txt");
 		if (cacheFile.exists()) {
 			FileReader fr = new FileReader(cacheFile);
 			JsonParser parser = new JsonParser();
-			root = parser.parse(fr).getAsJsonObject();
+			realRoot = parser.parse(fr).getAsJsonObject();
 			fr.close();
+		} else {
+			realRoot = new JsonObject();
 		}
-		else {
+		if (realRoot.has("v" + modpack.version)) {
+			root = realRoot.getAsJsonObject("v" + modpack.version);
+		} else {
 			root = new JsonObject();
+			realRoot.add("v" + modpack.version, root);
 		}
 		for(ModFile mf : pack.getMods()) {
 			if (isModDefined(mf)) {
 				mf.setCacheFilename(getFilename(mf));
 				mf.setCacheMD5(getMD5(mf));
 				int comp = mf.getVersion().compareTo(getVersion(mf));
-				if (comp > 0)
+				if (comp != 0)
 					mf.newerThanCache = true;
 			}
 			else {

@@ -14,7 +14,7 @@ import java.util.logging.Level;
 
 import com.github.vortexellauncher.Log;
 import com.github.vortexellauncher.Main;
-import com.github.vortexellauncher.OSUtils;
+import com.github.vortexellauncher.OSInfo;
 import com.github.vortexellauncher.UserPass;
 import com.github.vortexellauncher.VersionData;
 import com.github.vortexellauncher.exceptions.JsonValidationException;
@@ -40,9 +40,6 @@ import com.google.gson.JsonElement;
  */
 public class Launch {
 	
-	private LoginResponse RESPONSE = null;
-	private ExecutorService driverThread = Executors.newSingleThreadExecutor();
-	
 	public static enum ProgressState {
 		None,
 		CheckingForUpdates,
@@ -56,6 +53,10 @@ public class Launch {
 			Log.log(level, "Launch status: " + name());
 		}
 	}
+	
+	private LoginResponse RESPONSE = null;
+	private ExecutorService driverThread = Executors.newSingleThreadExecutor();
+	private ProgressState progress = ProgressState.None;
 	
 	public Launch() {
 		
@@ -156,17 +157,14 @@ public class Launch {
 		GameUpdateWorker updateWorker;
 		Modpack modpack;
 		Throwable error = null;
-		Level logLevel = Level.INFO;
 		
-		ProgressState progress = ProgressState.None;
+		logProgress(ProgressState.None);
 		Main.frame().getOptionsGui().updateToSettings();
 		try {
-			progress = ProgressState.ReadingCache;
-			progress.log(logLevel);
+			logProgress(ProgressState.ReadingCache);
 			modpack = Main.metaManager().loadModpack(Main.settings().getModpackName());
 			if (modpack.getUpdateURL() != null) {
-				progress = ProgressState.CheckingForUpdates;
-				progress.log(logLevel);
+				logProgress(ProgressState.CheckingForUpdates);
 				try {
 					JsonElement nextJson = JsonUtils.readJsonURL(new URL(modpack.getUpdateURL()));
 					Modpack nextPack = new Modpack(nextJson.getAsJsonObject(), modpack.getUpdateURL());
@@ -184,8 +182,7 @@ public class Launch {
 			populateWithMCCoreFiles(cache, fileList);
 			
 			if (Main.settings().shouldValidate()) {
-				progress = ProgressState.Validating;
-				progress.log(logLevel);
+				logProgress(ProgressState.Validating);
 				validator = new PackValidator(cache, fileList);
 				statusList = validator.runHere();
 				statusSet = EnumSet.copyOf(statusList);
@@ -195,10 +192,9 @@ public class Launch {
 						throw new ValidationException("Can not update files while in offline mode");
 					}
 				} else {
-					progress = ProgressState.Updating;
-					progress.log(logLevel);
+					logProgress(ProgressState.Updating);
 					if (setsOverlap(statusSet, FileStatus.StatusDoDownload)) {
-						updateWorker = new GameUpdateWorker(cache, fileList, statusList);
+						updateWorker = new GameUpdateWorker(modpack, cache, fileList, statusList);
 						updateWorker.execute();
 						updateWorker.get();
 					}
@@ -206,8 +202,7 @@ public class Launch {
 			} else {
 				Log.warning("Skiping validation and update steps. Minecraft directory will NOT BE CHECKED.");
 			}
-			progress = ProgressState.Launching;
-			progress.log(logLevel);
+			logProgress(ProgressState.Launching);
 			try {
 				MinecraftLauncher.launchMinecraft(modpack, RESPONSE.username, RESPONSE.sessionID);
 			} catch (Exception e) {
@@ -232,6 +227,13 @@ public class Launch {
 		}
 		Main.frame().dispose();
 		Main.attemptExit();
+	}
+	
+	protected void logProgress(ProgressState p) {
+		progress = p;
+		Main.frame().getMainPanel().setLoginStatus(progress.name());
+		progress.log(Level.INFO);
+		
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -263,7 +265,7 @@ public class Launch {
 		}
 		ModFile mcJar = new ModFile("minecraft.jar", ModType.Bin, packData.getModpack().mcversion.getJarUrl());
 		mcJar.setVersion(new VersionData(0));
-		ModFile mcNatives = new ModFile(OSUtils.nativesJar(), ModType.Native, OSUtils.nativesURL());
+		ModFile mcNatives = new ModFile(OSInfo.nativesJar(), ModType.Native, OSInfo.nativesURL());
 		mcNatives.isArchive = true;
 		mcNatives.setVersion(new VersionData(0));
 		fileList.add(mcJar);

@@ -23,6 +23,7 @@ import com.github.vortexellauncher.net.FileDownloader;
 import com.github.vortexellauncher.net.NetResolver;
 import com.github.vortexellauncher.pack.FileStatus;
 import com.github.vortexellauncher.pack.ModFile;
+import com.github.vortexellauncher.pack.Modpack;
 import com.github.vortexellauncher.pack.PackCache;
 import com.github.vortexellauncher.util.ErrorUtils;
 import com.github.vortexellauncher.util.Utils;
@@ -39,6 +40,7 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 	}
 	
 	// modpack fields
+	private Modpack pack;
 	private PackCache packData;
 	private File packDir;
 	private List<ModFile> fileList;
@@ -48,7 +50,8 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 	private ArrayListModel<FileDownloader> alm = new ArrayListModel<FileDownloader>();
 	private ArrayList<DownloadData> futureList = new ArrayList<DownloadData>();
 	
-	public GameUpdateWorker(PackCache cache, List<ModFile> flist, List<FileStatus> statList) {
+	public GameUpdateWorker(Modpack pack, PackCache cache, List<ModFile> flist, List<FileStatus> statList) {
+		this.pack = pack; 
 		packData = cache;
 		packDir = packData.getModpack().getFolder();
 		downloadService = Executors.newFixedThreadPool(16);
@@ -77,7 +80,7 @@ public class GameUpdateWorker extends SwingWorker<Boolean, Float> {
 					continue;
 				ModFile mod = fileList.get(i);
 				URLConnection urlcon = NetResolver.resolveConnection(new URL(mod.url), prox);
-				FileDownloader fd = new FileDownloader(urlcon, mod.type.getDir(packDir), mod.getFilename());
+				FileDownloader fd = new FileDownloader(urlcon, mod.type.getDir(pack.mcversion, packDir), mod.getFilename());
 				Future<FileDownloader> fut = downloadService.submit(fd);
 				futureList.add(new DownloadData(fut, mod));
 				alm.add(fd);

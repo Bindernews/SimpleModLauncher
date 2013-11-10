@@ -40,11 +40,12 @@ public class ErrorUtils {
 	}
 	
 	public static void printException(Throwable e, boolean fatal) {
-		printException("", e, fatal);
+		printException(null, e, fatal);
 	}
 	
 	public static void printException(String message, Throwable e, boolean fatal) {
-		System.err.println(message);
+		if (message != null)
+			System.err.println(message);
 		e.printStackTrace();
 		Main.logView().setVisible(true);
 	}

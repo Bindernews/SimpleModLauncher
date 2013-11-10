@@ -2,8 +2,10 @@ package com.github.vortexellauncher.pack;
 
 import java.io.File;
 
+import com.github.vortexellauncher.MCVersion;
+
 public enum ModType {
-	Jar("../jarmods"){
+	Jar("../jarmods") {
 	},
 	Core("coremods") {
 	},
@@ -24,9 +26,9 @@ public enum ModType {
 		directoryName = dirName;
 	}
 	
-	private final String directoryName;
+	protected String directoryName;
 
-	public File getDir(File parent) {
+	public File getDir(MCVersion ver, File parent) {
 		return new File(parent, directoryName);
 	}
 	

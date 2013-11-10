@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.PrintStream;
+import java.util.Map.Entry;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -80,7 +81,10 @@ public class LogView extends JFrame implements ClipboardOwner {
 		JMenuItem mntmPrintSystemInfo = new JMenuItem("Print System Info");
 		mntmPrintSystemInfo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.getProperties().list(System.out);
+				System.out.println("-- listing properties --");
+				for(Entry<Object,Object> ent : System.getProperties().entrySet()) {
+					System.out.println(ent.getKey()+"="+ent.getValue());
+				}
 				System.out.println();
 				DebugUtils.printEnvironment(System.out);
 			}

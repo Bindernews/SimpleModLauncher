@@ -2,10 +2,10 @@ package com.github.vortexellauncher;
 
 import java.io.File;
 
-public enum OSUtils {
+public enum OSInfo {
 	
 	Windows {
-		public String getDataDir() {
+		public String getDefaultDataDir() {
 			return System.getenv("AppData") + "\\." + LAUNCHER_DIR;
 		}
 		public String getNatives() {
@@ -20,7 +20,7 @@ public enum OSUtils {
 	},
 	Mac {
 		private static final String MC_PATH = "/Library/Application Support/"; 
-		public String getDataDir() {
+		public String getDefaultDataDir() {
 			return System.getenv("HOME") + MC_PATH + LAUNCHER_DIR;
 		}
 		public String getNatives() {
@@ -37,7 +37,7 @@ public enum OSUtils {
 		}
 	},
 	Linux {
-		public String getDataDir() {
+		public String getDefaultDataDir() {
 			return "~/."+LAUNCHER_DIR;
 		}
 		public String getNatives() {
@@ -53,7 +53,7 @@ public enum OSUtils {
 
 	public static final String LAUNCHER_DIR = "modlauncher";
 	
-	private static OSUtils currentOS = null;
+	private static OSInfo currentOS = null;
 	
 	private static void selectOS() {
 		String name = System.getProperty("os.name").toLowerCase();
@@ -63,14 +63,18 @@ public enum OSUtils {
 		else throw new IllegalArgumentException("Unknown OS");
 	}
 	
-	public static OSUtils getOS() {
+	public static OSInfo getOS() {
 		if (currentOS == null)
 			selectOS();
 		return currentOS;
 	}
 	
 	public static String dataDir() {
-		return getOS().getDataDir();
+		return defaultDataDir();
+	}
+	
+	public static String defaultDataDir() {
+		return getOS().getDefaultDataDir();
 	}
 	public static String nativesJar() {
 		return getOS().getNatives();
@@ -82,7 +86,7 @@ public enum OSUtils {
 		return getOS().getMCFolderName();
 	}
 	
-	public abstract String getDataDir();
+	public abstract String getDefaultDataDir();
 	public abstract String getNatives();
 	public abstract String getNativesURL();
 	public abstract String getMCFolderName();

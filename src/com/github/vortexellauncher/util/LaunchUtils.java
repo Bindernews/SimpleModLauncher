@@ -7,7 +7,7 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 
 import com.github.vortexellauncher.Main;
-import com.github.vortexellauncher.OSUtils;
+import com.github.vortexellauncher.OSInfo;
 
 public class LaunchUtils {
 
@@ -23,7 +23,7 @@ public class LaunchUtils {
 	
 	public static String getJVMPath() {
 		String jvmPath = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-		if (OSUtils.getOS() == OSUtils.Windows) {
+		if (OSInfo.getOS() == OSInfo.Windows) {
 			jvmPath += "w";
 		}
 		return jvmPath;

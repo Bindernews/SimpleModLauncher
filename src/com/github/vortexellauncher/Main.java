@@ -14,6 +14,7 @@ import com.github.vortexellauncher.gui.Res;
 import com.github.vortexellauncher.gui.Styler;
 import com.github.vortexellauncher.launch.Launch;
 import com.github.vortexellauncher.pack.PackMetaManager;
+import com.github.vortexellauncher.workers.UpdateCheckGuiWorker;
 
 public class Main {
 	
@@ -28,7 +29,7 @@ public class Main {
 	private static PackMetaManager metaManager;
 	private static Logger logger;
 	
-	public static final File lastLoginFile = new File(OSUtils.dataDir(), "loginlast");
+	public static final File lastLoginFile = new File(OSInfo.dataDir(), "loginlast");
 	
 	public static void main(String[] args) {
 		System.out.println(Arrays.asList(args));
@@ -63,6 +64,7 @@ public class Main {
 				public void run() {
 					frame = new MainFrame();
 					frame.setVisible(true);
+					(new UpdateCheckGuiWorker()).execute();
 					Init.loadLastLogin();
 				}
 			});
